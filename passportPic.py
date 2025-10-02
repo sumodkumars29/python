@@ -25,12 +25,12 @@ def scale_image_to_specs(image, drawable):
 		ext = os.path.splitext(filename)[1].lower()
 
 		if ext in [".jpg", ".jpeg"]:
-			pdb.file_jpeg_save(image, drawable, filename, filename, 1, 0, 1, 0, "", 0, 1, 0, 0)
+			pdb.file_jpeg_save(image, drawable, filename, filename, 0.9, 0, 1, 0, "", 0, 1, 0, 0)
 		elif ext == ".png":
 			pdb.file_png_save_defaults(image, drawable, filename, filename)
 		else:
 			# fallback for other types: save as JPG, overwrite existing if same name
-			fallback_filename = os.path.splitext(filename)[0] + ".jpg"
+			fallback_filename = os.path.splitext(filename)[0] + ".png"
 			pdb.file_png_save_defaults(image, drawable, fallback_filename, fallback_filename)
 	else:
 		gimp.message("Image has no filename (was not loaded from disk). Cannot overwrite.")
