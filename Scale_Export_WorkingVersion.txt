@@ -1,0 +1,74 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+import gi
+gi.require_version('Gimp', '3.0')
+from gi.repository import Gimp
+gi.require_version('GimpUi', '3.0')
+from gi.repository import GimpUi
+gi.require_version('Gegl', '0.4')
+from gi.repository import Gegl
+from gi.repository import GObject
+from gi.repository import GLib
+from gi.repository import Gio
+
+import os
+import sys
+
+
+
+class scaleImage (Gimp.PlugIn):
+    ## GimpPlugIn virtual methods ##
+    def do_query_procedures(self):
+        return [ "sk-plug-in-scale-image-python" ]
+
+    def do_create_procedure(self, name):
+        procedure = Gimp.ImageProcedure.new(self, name,
+                                            Gimp.PDBProcType.PLUGIN,
+                                            self.run, None)
+
+        procedure.set_image_types("*")
+        procedure.set_sensitivity_mask (Gimp.ProcedureSensitivityMask.DRAWABLE)
+
+        procedure.set_menu_label("Scale image (px): 815x1063")
+        procedure.set_icon_name(GimpUi.ICON_GEGL)
+        procedure.add_menu_path('<Image>/Image/')
+
+        procedure.set_documentation("My first Python Fu plugin in Gimp 3.0.4",
+                                    "This will scale the image to width of 815 px and height of 1063 px",
+                                    name)
+        procedure.set_attribution("Sumod", "Sumod", "2025")
+
+        return procedure
+
+    def run(self, procedure, run_mode, image, drawables, config, run_data):
+            
+        counter = 1  # start counting from 1
+
+        for img in Gimp.get_images():
+            # Make sure the image is editable
+            img.undo_group_start()
+
+            # Set image resolution to 600 dpi by 600 dpi
+            img.set_resolution(600, 600)
+
+            # Scale the image to 815x1063
+            width, height = 815, 1063
+            img.scale(width, height)
+
+            # Export the image
+            output_folder = r"C:\Users\S10DIGITAL\Downloads\Pictures_out"
+            os.makedirs(output_folder, exist_ok=True)
+            output_path = os.path.join(output_folder, f"Pic{counter}.jpg")
+            file = Gio.File.new_for_path(output_path)
+            Gimp.file_save(Gimp.RunMode.NONINTERACTIVE, img, file, None)
+            
+            counter += 1  # increment for the next image
+
+            # Update display and finish
+            Gimp.displays_flush()
+            img.undo_group_end()
+
+        return procedure.new_return_values(Gimp.PDBStatusType.SUCCESS, GLib.Error())    
+
+Gimp.main(scaleImage.__gtype__, sys.argv)
