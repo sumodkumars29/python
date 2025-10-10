@@ -1,0 +1,135 @@
+>>> image = Gimp.get_images()[0]
+>>> drawable = image.get_selected_layers()[0]
+>>> imgw = image.get_width()
+>>> print(imgw)
+1200
+>>> imgh = image.get_height()
+>>> print(imgh)
+1600
+>>> 
+>>> Gimp.context_set_interpolation(Gimp.InterpolationType.NOHALO)
+True
+>>> image.set_resolution(600, 600)
+True
+>>> image.scale(815, 1063)
+True
+>>> outpath = r"C:\Users\Sumod\Downloads\Pictures_out\Pic3.jpg"
+>>> file = Gio.File.new_for_path(outpath)
+>>> Gimp.file_save(1, image, file, None)
+True
+>>> drawable = image.get_selected_layers()[1]
+Traceback (most recent call last):
+  File "<input>", line 1, in <module>
+IndexError: list index out of range
+>>> image = Gimp.get_images()[1]
+>>> drawable = image.get_selected_layers()[0]
+>>> Gimp.context_set_interpolation(Gimp.InterpolationType.NOHALO)
+True
+>>> image.set_resolution(600, 600)
+True
+>>> image.scale(815, 1063)
+True
+>>> outpath = r"C:\Users\Sumod\Downloads\Pictures_out\Pic2.jpg"
+>>> file = Gio.File.new_for_path(outpath)
+>>> Gimp.file_save(1, image, file, None)
+True
+>>> image = Gimp.get_images()[2]
+>>> drawable = image.get_selected_layers()[0]
+>>> Gimp.context_set_interpolation(Gimp.InterpolationType.NOHALO)
+True
+>>> image.set_resolution(600, 600)
+True
+>>> image.scale(815, 1063)
+True
+>>> outpath = r"C:\Users\Sumod\Downloads\Pictures_out\Pic1.jpg"
+>>> file = Gio.File.new_for_path(outpath)
+>>> Gimp.file_save(1, image, file, None)
+True
+>>> images = Gimp.get_displayed_images()  
+Traceback (most recent call last):
+  File "<input>", line 1, in <module>
+  File "C:\Users\Sumod\AppData\Local\Programs\GIMP 3\lib\python3.12\site-packages\gi\module.py", line 127, in __getattr__
+    raise AttributeError("%r object has no attribute %r" % (
+AttributeError: 'gi.repository.Gimp' object has no attribute 'get_displayed_images'
+>>> images = Gimp.context_get().get_images()
+Traceback (most recent call last):
+  File "<input>", line 1, in <module>
+  File "C:\Users\Sumod\AppData\Local\Programs\GIMP 3\lib\python3.12\site-packages\gi\module.py", line 127, in __getattr__
+    raise AttributeError("%r object has no attribute %r" % (
+AttributeError: 'gi.repository.Gimp' object has no attribute 'context_get'. Did you mean: 'context_pop'?
+>>> app = Gimp.Application.get()
+Traceback (most recent call last):
+  File "<input>", line 1, in <module>
+  File "C:\Users\Sumod\AppData\Local\Programs\GIMP 3\lib\python3.12\site-packages\gi\module.py", line 127, in __getattr__
+    raise AttributeError("%r object has no attribute %r" % (
+AttributeError: 'gi.repository.Gimp' object has no attribute 'Application'
+>>> image = Gimp.get_images()
+>>> type(image)
+<class 'list'>
+>>> len(image)
+3
+>>> 
+
+
+
+
+#def scale_image_to_specs(image, drawable):
+#    # set the required variables
+#    imgCount = len(Gimp.get_images())
+#
+#    for i, img in enumerate(imgCount, start=1):
+#        image = Gimp.get_images()[i]
+#        drawable = image.get_selected_layers()[0]
+#        Gimp.context_set_interpolation(Gimp.InterpolationType.NOHALO)
+#        image.set_resolution(600, 600)
+#        image.scale(815, 1063)
+#        outpath = r"C:\Users\Sumod\Downloads\Pictures_out\Pic" + str(i) + ".jpg"
+#        file = Gio.File.new_for_path(outpath)
+#       Gimp.file_save(1, image, file, None)
+#main()
+
+
+
+
+>>> Gimp.file_save(run_mode, image, file, None)
+False
+>>> output_folder = r"C:\Users\Sumod\Downloads\Pictures_out"
+>>> os.makedirs(output_folder, exist_ok=True)
+>>> output_path = os.path.join(output_folder, "myimage.jpg")
+>>> file = Gio.File.new_for_path(output_path)
+>>> Gimp.file_save(Gimp.RunMode.NONINTERACTIVE, image, file, None)
+
+
+
+
+
+GIMP 3.0.4 Python Console
+Python 3.12.10 (main, Apr 18 2025, 06:12:22)  [GCC UCRT Clang 20.1.3 64 bit (AMD64)]
+>>>  image = Gimp.get_images()[0]
+  File "<input>", line 1
+    image = Gimp.get_images()[0]
+IndentationError: unexpected indent
+>>> image = Gimp.get_images()[0]
+>>> imgw = image.get_width()
+>>> imgh = image.get_height()
+>>> print(imgw, imgh)
+2427 3404
+>>> target_height = 1100
+>>> imgw, imgh = image.get_width(), image.get_height()
+>>> print(imgw, imgh)
+2427 3404
+>>> scale_factor = target_height / imgh
+>>> print(imgw, imgh, target_height, scale_factor)
+2427 3404 1100 0.32314923619271446
+>>> t_width = int(imgw * scale_factor)
+>>> print(t_width, target_height)
+784 1100
+>>> image.set_resolution(600, 600)
+True
+>>> image.scale(t_width, target_height)
+True
+>>> print(image.get_width(), image.get_height())
+784 1100
+>>> 
+True
+>>> 
