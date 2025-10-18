@@ -67,6 +67,8 @@ class scaleImage (Gimp.PlugIn):
             # Scaling the image to height 1100 px with aspect ration locked
             img.scale(t_width, t_height)
 
+
+
             # Export the image
             output_folder = r"C:\Users\S10DIGITAL\Downloads\Pictures_out"
             os.makedirs(output_folder, exist_ok=True)
