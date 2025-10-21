@@ -1,3 +1,17 @@
+GIMP 3.0.4 Python Console
+Python 3.12.10 (main, Apr 18 2025, 06:12:22)  [GCC UCRT Clang 20.1.3 64 bit (AMD64)]
+>>> img = Gimp.get_images()[0]
+>>> drawable = img.get_selected_layers()[0]
+>>> img.crop(713, 930, 90, 62)
+True
+>>> img.set_resolution(600, 600)
+True
+>>> width, height = 815, 1063
+>>> img.scale(width, height)
+True
+>>> 
+
+
 >>> image = Gimp.get_images()[0]
 >>> drawable = image.get_selected_layers()[0]
 >>> imgw = image.get_width()
