@@ -68,7 +68,7 @@ class crop_scale_Image (Gimp.PlugIn):
             t_width = int(img_w * scale_factor)
 
             # Step5: Set image resolution to 600 dpi by 600 dpi
-            # img.set_resolution(600, 600)
+            img.set_resolution(600, 600)
 
             # Step5: Scaling the image to height 1100 px with aspect ration locked
             img.scale(t_width, t_height)
@@ -80,7 +80,7 @@ class crop_scale_Image (Gimp.PlugIn):
 
 	    try:
 
-	    	# START --- TEMPORARILY SAVE IMAGE OF OPENCV TO ACCESS ---
+	    	# START --- TEMPORARILY SAVE IMAGE FOR OPENCV TO ACCESS ---
 		
 		# Step1: Initialize and assign temporary path variable to "None"
             	tmp_path = None
@@ -103,7 +103,7 @@ class crop_scale_Image (Gimp.PlugIn):
 		# Syntax: Gimp.file_save(run_mode, image, file, options)
 	    	Gimp.file_save(Gimp.RunMode.NONINTERACTIVE, img, file_obj, None)
 
-	    	# END --- TEMPORARILY SAVE IMAGE OF OPENCV TO ACCESS
+	    	# END --- TEMPORARILY SAVE IMAGE FOR OPENCV TO ACCESS
 	
 
 	    	# START --- TRIGGER OPENCV SCRIPT TO ACQUIRE CROP CO-ORDINATES AND DIMENSIONS ---
@@ -119,7 +119,7 @@ class crop_scale_Image (Gimp.PlugIn):
                 	text=True,
             	)
 		
-		# Step2: Save the output from the external script to 'coords'
+		# Step2: Save the output from the external script to 'coords' variable
             	coords = result.stdout.strip()
 
 	    except Exception as e:	# if the process errors out
