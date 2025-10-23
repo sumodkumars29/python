@@ -1,0 +1,99 @@
+HOW GIMP PLUGIN WORKS
+
+┌──────────────────────────────┐
+│        GIMP STARTS           │
+│   (Scanning all plug-ins)    │
+└──────────────┬───────────────┘
+               │
+               ▼
+     ┌────────────────────┐
+     │ Plugin file found  │
+     │ e.g., crop_scale.py│
+     └────────────────────┘
+               │
+               ▼
+     ┌──────────────────────────────┐
+     │ GIMP loads the plugin class  │
+     │ → crop_scale_Image(Gimp.PlugIn)
+     └──────────────────────────────┘
+               │
+               ▼
+     ┌──────────────────────────────┐
+     │ GIMP calls:                  │
+     │ do_query_procedures(self)    │
+     │                              │
+     │ Plugin returns:              │
+     │ ["sk-plug-in-crop-scale-image-python"]
+     └──────────────────────────────┘
+               │
+               ▼
+     ┌──────────────────────────────┐
+     │ GIMP calls:                  │
+     │ do_create_procedure(self,    │
+     │     "sk-plug-in-crop-scale-image-python") │
+     │                              │
+     │ → Plugin builds a            │
+     │   Gimp.ImageProcedure object │
+     │   (metadata, menu label, etc.) │
+     └──────────────────────────────┘
+               │
+               ▼
+     ┌──────────────────────────────┐
+     │ GIMP saves this definition   │
+     │ in the PDB (Procedural DB)   │
+     │ → Menu entry now visible     │
+     └──────────────────────────────┘
+               │
+               ▼
+     ╔══════════════════════════════╗
+     ║     DISCOVERY PHASE DONE     ║
+     ╚══════════════════════════════╝
+               │
+               ▼
+     (User clicks menu item or calls from console)
+               │
+               ▼
+     ┌──────────────────────────────┐
+     │ GIMP looks up procedure in   │
+     │ PDB by name                  │
+     │ "sk-plug-in-crop-scale-image-python" │
+     └──────────────────────────────┘
+               │
+               ▼
+     ┌──────────────────────────────┐
+     │ GIMP calls:                  │
+     │ run(self, procedure,         │
+     │     run_mode, image,         │
+     │     drawables, config,       │
+     │     run_data)                │
+     └──────────────────────────────┘
+               │
+               ▼
+     ┌──────────────────────────────┐
+     │ Plugin executes image logic  │
+     │ (crop, scale, save, etc.)    │
+     └──────────────────────────────┘
+               │
+               ▼
+     ┌──────────────────────────────┐
+     │ GIMP updates image display   │
+     │ and completes execution.     │
+     └──────────────────────────────┘
+
+
+
+**********************************************************************************************************
+
+GIMP starts → loads the plugin → calls do_query_procedures() and do_create_procedure() → stores that info in the PDB →
+later, when the user activates the menu entry or runs the command, GIMP calls run() to actually execute the image operation.
+
+GIMP executes the plugin file twice — once during discovery (to register) and once during run time (to perform the operation).
+
+do_query_procedures() → tells GIMP what commands this plugin provides.
+	Returns a comma separated list of plugin names (internal names) / only one in this case
+
+do_create_procedure() → defines how each command is registered in the system.
+
+run() → performs the actual image operation when the user runs the plugin.
+
+

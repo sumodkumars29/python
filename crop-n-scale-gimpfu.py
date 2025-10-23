@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
@@ -16,12 +17,30 @@ import os
 import sys
 
 
-
+# Define a plugin class that inherits from Gimp.PlugIn class.
+# This makes GIMP recognize it as a valid plugin entry point and gives access
+# to the required methods and API (like do_query_procedures, do_create_procedure, etc.).
+# Note To Self : inheritance doesn’t expose enums or functions
+# Note To Self : inheritance exposes methods and attributes of the parent class
+# GIMP requirement
 class crop_scale_Image (Gimp.PlugIn):
     ## GimpPlugIn virtual methods ##
+
+# Called automatically by GIMP when scanning plugins.
+# Must return a list of procedure names (strings) that this plugin defines.
+# Each name represents a unique command GIMP can register in its Procedural Database (PDB).
+    # 'self' here is the current instance of the crop_scale_Image class,
+    # which inherits from Gimp.PlugIn. GIMP automatically creates this
+    # instance and calls this method on it during the plugin discovery phase.
+# GIMP requirement
     def do_query_procedures(self):
         return [ "sk-plug-in-crop-scale-image-python" ]
 
+# Called by GIMP once for each procedure name returned by do_query_procedures().
+# Creates and returns a fully defined Gimp.ImageProcedure object describing
+# the plugin's behavior, menu placement, and documentation.
+# The 'name' argument is the same string that was returned earlier.
+# GIMP requirement
     def do_create_procedure(self, name):
         procedure = Gimp.ImageProcedure.new(self, name,
                                             Gimp.PDBProcType.PLUGIN,
