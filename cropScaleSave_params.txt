@@ -1,0 +1,1 @@
+[<GParamEnum at 0x2621146424112>, <GimpParamImage at 0x2621146424496>, <GimpParamCoreObjectArray at 0x2621146425136>]

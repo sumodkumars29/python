@@ -1,0 +1,140 @@
+def uniform_scale(self, raw_image):
+ 	t_height = 1100
+ 	img_w, img_h = raw_image.get_width(), raw_image.get_height()
+ 	scale_factor = t_height / img_h
+ 	t_width = int(img_w * scale_factor)
+ 	raw_image.set_resolution(600, 600)
+ 	raw_image.scale(t_width, t_height)
+
+ 	return raw_image
+
+
+
+
+def openCv_process(self, image, temp_path):
+ 	result = subprocess.run(
+ 		[
+ 			r"/home/sumodk/gimp_face_env/bin/python",	# the Python interpreter inside your virtual environment.
+ 			r"/home/sumodk/Desktop/pyThon/co-ordinates.py",	# the external Python script to execute (contains OpenCV logic).
+ 			temp_path,	# path to target image passed as argument
+ 		],
+ 		stdout=subprocess.PIPE,
+ 		text=True,
+ 	)
+ 
+ 	return result.stdout.strip()
+
+
+
+def crop_scale(self, image, coords):
+ 	x, y, w, h = map(int, coords.split(","))
+ 	image.crop(w, h, x, y)
+ 	image.set_resolution(600, 600)
+ 	width, height = 815, 1063
+ 	image.scale(width, height)
+
+ 	return image
+
+
+
+
+    def run(self, procedure, run_mode, image, drawables, config, run_data):
+
+ 	tmp_path = None
+ 	temp_folder = r"/home/sumodk/Desktop/Pictures/forOpenCv"
+ 	os.makedirs(temp_folder, exist_ok=True)
+ 	log_path = os.path.join(temp_folder, "opencv_log.txt")
+
+
+ 	output_folder = r"/home/sumodk/Desktop/Pictures/results"
+ 	os.makedirs(output_folder, exist_ok=True)
+
+
+ 	counter = 1  # start counting from 1
+        for img in Gimp.get_images():
+
+
+
+ 		# Make sure the image is editable
+ 		img.undo_group_start()
+
+ 		# START --- SCALING IMAGE HEIGHT TO STANDARD 1100px ---
+
+ 		self.uniform_scale(img)
+
+ 		# END --- SCALING IMAGE HEIGHT TO STANDARD 1100px ---
+
+ 		# START --- OPENCV ---
+ 		coords = ""
+
+ 		try:
+
+ 			# START --- TEMPORARILY SAVE IMAGE FOR OPENCV TO ACCESS ---
+
+ 			tmp_path = os.path.join(temp_folder, f"tempImage_{counter}.jpg")
+
+ 			# Step5: save the image along with temporary path as a file object (GIMP 3.0.. requirement)
+ 			# file_obj is like a container that the image will be put into
+ 			file_obj = Gio.File.new_for_path(tmp_path)
+
+ 			# Step6: Saving the image to defined location
+ 			# Syntax: Gimp.file_save(run_mode, image, file, options)
+ 			Gimp.file_save(Gimp.RunMode.NONINTERACTIVE, img, file_obj, None)
+
+ 			# END --- TEMPORARILY SAVE IMAGE FOR OPENCV TO ACCESS
+ 
+
+ 	    		# START --- TRIGGER OPENCV SCRIPT TO ACQUIRE CROP CO-ORDINATES AND DIMENSIONS ---
+            		coords = self.openCv_process(img, tmp_path)
+
+ 		except Exception as e:	# if the process errors out
+ 			# Write error both to GIMP and to log file
+ 			error_msg = f"Error during OpenCV subprocess: {e}\n"
+ 			Gimp.message(error_msg)
+
+   		# Append full traceback and context to log
+    		with open(log_path, "a", encoding="utf-8") as log:
+        		log.write(f"[{GLib.DateTime.new_now_local().format('%Y-%m-%d %H:%M:%S')}]\n")
+        		log.write(error_msg)
+        		if 'result' in locals():
+            			log.write(f"Command: {result.args}\nReturn code: {result.returncode}\nOutput: {result.stdout}\n\n")
+        		else:
+            			log.write("Subprocess never started.\n\n")
+
+ 	    	finally:
+ 			# Step3: Delete the temporary file for next loop
+            		if tmp_path and os.path.exists(tmp_path):
+                		os.remove(tmp_path)
+
+ 	    # END --- TRIGGER OPENCV SCRIPT TO ACQUIRE CROP CO-ORDINATES AND DIMENSIONS ---
+ 	    # END --- OPENCV ---
+
+ 	    # START --- CROP AND SCALE THE IMAGE ---
+ 
+ 	    # Step1: Ensure that data is received from OpenCV
+ 	    if not coords:
+    		Gimp.message("No coordinates received from OpenCV; skipping this image.")
+    		continue
+
+
+ 		self.crop_scale(img, coords)
+
+
+
+ 	    # END --- CROP AND SCALE THE IMAGE ---
+
+
+
+ 	    # START --- EXPORT AND SAVE THE IMAGE ---
+            output_path = os.path.join(output_folder, f"Pic{counter}.jpg")
+            file = Gio.File.new_for_path(output_path)
+            Gimp.file_save(Gimp.RunMode.NONINTERACTIVE, img, file, None)
+
+ 	    # END --- EXPORT AND SAVE THE IMAGE ---
+ 	    counter += 1
+
+            # UPDATE DISPLAY AND FINISH
+            Gimp.displays_flush()
+            img.undo_group_end()
+
+        return procedure.new_return_values(Gimp.PDBStatusType.SUCCESS, GLib.Error())

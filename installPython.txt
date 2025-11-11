@@ -1,0 +1,13 @@
+mkdir C:\python
+mkdir C:\python\pyver
+mkdir C:\python\pyver\py_314
+
+download and install python to C:\python\pyver\py_314
+
+create virtual environment for the GIMP project
+
+mkdir C:\python\py_GIMP
+cd C:\python\py_GIMP
+C:\python\pyver\py_314\python -m venv py_venv_gimp
+
+py_venv_gimp\Scripts\activate

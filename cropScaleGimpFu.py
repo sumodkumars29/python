@@ -133,6 +133,7 @@ class crop_scale_Image(Gimp.PlugIn):
                     ],
                     stdout=subprocess.PIPE,
                     text=True,
+                    creationflags=subprocess.CREATE_NO_WINDOW,  # ensure that the console does not open
                     )
 
                 # Step2: Save the output from the external script to 'co_ords' variable
@@ -193,7 +194,7 @@ class crop_scale_Image(Gimp.PlugIn):
             os.makedirs(output_folder, exist_ok=True)
             output_path = os.path.join(output_folder, f"Pic{counter}.jpg")
             file = Gio.File.new_for_path(output_path)
-            Gimp.file.save(Gimp.RumMode.NONINTERACTIVE, img, file, None)
+            Gimp.file.save(Gimp.RunMode.NONINTERACTIVE, img, file, None)
             # END --- EXPORT AND SAVE THE IMAGE
 
             counter += 1
