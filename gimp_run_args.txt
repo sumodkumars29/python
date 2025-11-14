@@ -1,6 +1,0 @@
-procedure: <Gimp.ImageProcedure object at 0x000001692f23b180 (GimpImageProcedure at 0x000001692c856790)>
-run_mode: 1
-image: <Gimp.Image object at 0x000001692f23b980 (GimpImage at 0x000001692c75ddd0)> (<class 'gi.repository.Gimp.Image'>)
-drawables: [] (<class 'list'>)
-config: <__gi__.GimpProcedureConfigRun-sk-plug-in-crop-scale-save-python object at 0x000001692f233800 (GimpProcedureConfigRun-sk-plug-in-crop-scale-save-python at 0x000001692c89ab90)> (<class '__gi__.GimpProcedureConfigRun-sk-plug-in-crop-scale-save-python'>)
-run_data: None (<class 'NoneType'>)

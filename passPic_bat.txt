@@ -1,0 +1,189 @@
+@echo off
+setlocal enabledelayedexpansion
+if "%~1"=="" (
+	echo Usage: %~nx0 number_of_files
+	exit /b 1
+)
+set "COUNT=%~1"
+set "DOWNLOADS=%USERPROFILE%\Downloads"
+set "TARGET=%DOWNLOADS%\Pictures"
+set "OUTFOLDER=%DOWNLOADS%\Pictures_out"
+
+for /f %%C in ('dir /b /a:-d "%DOWNLOADS%\*.jpg" "%DOWNLOADS%\*.jpeg" "%DOWNLOADS%\*.png" 2^>nul ^| find /c /v ""') do set "FILECOUNT=%%C"
+echo Found %FILECOUNT% image files in "%DOWNLOADS%".
+
+REM 	for /f %%C in (' ... ') do ...
+:: for /f runs a command enclosed in '...', reads its output line by line, and assigns each line’s text to a variable — here %%C.
+
+REM 	dir /b
+:: /b = “bare format” → list only filenames, no details.
+
+REM 	/a:-d
+:: This means: show all non-directory items (i.e., files only).
+:: So we don’t list any subfolders inside Downloads.
+
+REM 	"*.jpg" "*.jpeg" "*.png"
+:: This tells dir to list all matching files with those extensions.
+:: If none exist, dir would normally print an error message — but…
+
+REM 	2^>nul
+:: The 2> redirects stderr (error output) to nul, meaning “discard error messages.”
+:: The ^ is needed to escape the > because it’s inside a for /f command — otherwise, the > would be parsed too early.
+:: So effectively:
+:: → ignore “File Not Found” messages if no images exist.
+
+REM 	^|
+:: That’s an escaped pipe symbol. The caret (^) prevents premature parsing, same reason as above.
+:: So now we’re piping the output of dir into another command — find.
+
+REM 	find /c /v ""
+:: This is a clever counting trick.
+:: /c tells find to output the number of matching lines, not the lines themselves.
+:: /v "" means: match all lines that do not contain the empty string.
+:: Since every line “does not contain” an empty string (in find logic), every line is counted.
+
+:: Result: it outputs only one line — the total number of lines (i.e., files).
+
+REM 	do set "FILECOUNT=%%C"
+
+:: Finally, the for /f reads that single output line (the count), assigns it to %%C, and stores it in the variable FILECOUNT.
+
+
+if %FILECOUNT% lss %COUNT% (
+    echo Not enough image files. Requested %COUNT%, but only found %FILECOUNT%.
+    exit /b 1
+)
+
+if exist "%TARGET%" (
+	echo Deleting existing images in %TARGET% ...
+	del /q "%TARGET%\*.jpg" "%TARGET%\*.jpeg" "%TARGET%\*.png" >nul 2>&1
+) else (
+	mkdir "%TARGET%"
+)
+if exist "%OUTFOLDER%" (
+	echo Deleting existing images in %OUTFOLDER% ...
+	del /q "%OUTFOLDER%\*" >nul 2>&1
+) else (
+	mkdir "%OUTFOLDER%"
+)
+
+:: START --- ROLLING ERROR LOGGING SETUP ---
+pushd "%TARGET%" || (echo %TARGET% directory not found & exit /b 1)
+:: 'pushd' temporarily changes the cwd (current working direcory) to the path specified ...
+:: while keeping the path to where it changed from in memory
+:: so the following commands will be executed with cwd as %USERPROFILE%\Downloads\Pictures
+
+
+:: Check if 5th log exists(rotation needed)
+if exist "batchScript_Log5.log" (
+	echo Rotating logs ...
+	del /q "batchScript_Log1.log"
+	for /l %%I in (2,1,5) do (
+	:: /l - loop through numbers, (2,1,5) - start at 2, step by 1, end at 5, so 2,3,4,5 - 4 loops
+	:: each number per loop is assigned to the variable %%I
+		set /a PREV=%%I-1
+		if exist "batchScript_Log%%I.log" (
+			ren "batchScript_Log%%I.log" "batchScript_Log!PREV!.log"
+		)
+	)
+	set "NEWLOG=batchScript_Log5.log"
+) else (
+	:: Find next available log number
+	set "NEWLOG="
+	for /l %%J in (1,1,5) do (
+		if not defined NEWLOG if not exist "batchScript_Log%%J.log" set "NEWLOG=batchScript_Log%%J.log"
+	)
+)
+
+:: Create the log if it doesn’t exist
+if not exist "%NEWLOG%" type nul > "%NEWLOG%"
+
+:: Append initial run info
+echo ================================================ >> "%NEWLOG%"
+echo Log initialized at %date% %time% >> "%NEWLOG%"
+echo ================================================ >> "%NEWLOG%"
+
+popd
+:: Uses the path in memory stored during the 'pushd' command to change cwd to previous path ...
+:: so all following commands are executed in the direcory the batch script was executed from
+
+:: END --- ROLLING ERROR LOGGING SETUP---
+
+set /a CNT=0
+set "FIRSTEXT="
+
+for /f "delims=" %%A in ('
+	dir /b /a:-d /o:-d "%DOWNLOADS%"
+') do (
+	set /a CNT+=1
+	if !CNT! leq %COUNT% (
+		set "EXT=%%~xA"
+		if !CNT! equ 1 set "FIRSTEXT=%%~xA"
+		call :RunAndLog "move \"%DOWNLOADS%\%%A\" \"%TARGET%\Pic!CNT!!EXT!\""
+	)
+)
+
+:: Ensure all files are fully written/moved before processing
+timeout /t 2 >nul
+
+echo Launching GIMP process...
+
+for /f "delims=" %%G in ('dir /s /b "C:\*gimp-console-3.*.exe" 2^>nul ^| findstr /i "bin"') do set "GIMP_EXE=%%G"
+
+if not defined GIMP_EXE (
+    echo GIMP console not found on drive C:. Aborting.
+	pause
+    exit /b 1
+)
+echo GIMP found at: %GIMP_EXE%
+
+set "GIMPSCRIPTCALL=file = Gio.File.new_for_path(r'%TARGET%\Pic1%FIRSTEXT%'); img = Gimp.file_load(Gimp.RunMode.NONINTERACTIVE, file); proc = Gimp.get_pdb(); mypross = proc.lookup_procedure('sk-plug-in-css-con-gui-python'); config = mypross.create_config(); config.set_property('run-mode', Gimp.RunMode.NONINTERACTIVE); config.set_property('image', img); mypross.run(config)"
+
+call :RunAndLog "\"%GIMP_EXE%\" -i --batch-interpreter=python-fu-eval -b \"%GIMPSCRIPTCALL%\" --quit"
+
+:: the 'call' keyword ensures that control is passed back to the batch script after execution
+
+if errorlevel 1 (
+    echo GIMP process failed with exit code %errorlevel%.
+	pause
+) else (
+    echo GIMP batch executed successfully. Running Word automation...
+)
+
+call :RunAndLog "\"%~dp0wt2word.bat\""
+
+if errorlevel 1 (
+	echo wt2word.bat failed with exit code !errorlevel!.
+	pause
+) else (
+	echo Word automation completed successfully.
+)
+
+exit /b 0
+
+
+:: %~dp0 --> "%~dp0wt2word.bat"
+:: This is a special modifier that expands to:
+:: 	%0 → the current batch file’s full path and name
+:: 	~d → drive letter of %0
+:: 	~p → path of %0 (excluding the filename)
+:: So %~dp0 means:
+:: 	“the drive and path of this batch file, ending with a backslash.”
+:: If the current script is --> C:\myScripts\mainScript.bat
+:: then %~dp0 becomes --> C:\myScripts\
+:: That makes the full expression %~dp0wt2word.bat --> C:\myScripts\wt2word.bat
+
+
+:RunAndLog
+:: Usage: call :RunAndLog "your command here"
+setlocal enabledelayedexpansion
+set "LASTCMD=%~1"
+echo [!date! !time!] Running: !LASTCMD! >> "%NEWLOG%"
+cmd /c "!LASTCMD!" >nul 2>>"%NEWLOG%"
+set "RC=!errorlevel!"
+if !RC! neq 0 (
+    echo [!date! !time!] ERROR: Command failed: !LASTCMD! (exit !RC!) >> "%NEWLOG%"
+)
+endlocal & exit /b !RC!
+
+endlocal
