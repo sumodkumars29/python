@@ -1,0 +1,377 @@
+Let's take it one step at a time.
+We will target images of only one kind for now.
+Scenario:
+We have an image of a person, not a full bodied image, but a passport size image against a solid color background.
+The image has a border that is also the bleed edge. 
+The border is white.
+The image, which will from here on mean the subject and the background is separated from the border by the sharp contrast between the background and the border. 
+The lower part of the image, that is from shoulder downwards, acts as the border edges for these kind of imgaes.
+For some images, the background in the image and the border may belong to the same color spectrum/wavelength/color group but will be of different intensity/shades/tones/tints etc.
+Now even though there may be a sharp contrast between image and border, the transition between the two colors happens across 3 to 5 pixels based on my observation.
+
+Our aim:
+Identify the four borders through which we can idenify the corners also
+the borders we use to target the core part of the image we need to process (background removal and cropping)
+the corners we need to pass to the 'warp' function of cv2 to straighten out the image if it is tilted or skewed in any way.
+
+we have used the warp function here:
+    --> This is a snippet from a script you shared earlier -->
+
+        maxHeight = max(int(heightA), int(heightB))
+        dst = np.array(
+            [[0, 0], [maxWidth - 1, 0], [maxWidth - 1, maxHeight - 1], [0, maxHeight - 1]],
+            dtype="float32",
+        )
+        M = cv2.getPerspectiveTransform(rect, dst)
+        warped = cv2.warpPerspective(img, M, (maxWidth, maxHeight))
+        return warped, M, rect
+
+and I am happy with how it works but we need to pass the correct co-ordinates of the corners to the warp function for it to work properly.
+
+We are only targeting one scenario now, but the script needs to be able to be adapt to other scenarios as well.
+
+I think the 'class' approach I shared with you earlier is a good one, the approach not the script itself.
+Also we did try 'Canny' but was not very effective in border detection.
+
+So what can we do?
+
+===========================================================================
+===========================================================================
+
+
+    def preprocess(self):
+        """
+        Create:
+            - self.gray
+            - self.norm
+            - self.blur
+        """
+
+        # Convert to gray
+        self.gray = cv2.cvtColor(self.original, cv2.COLOR_BGR2GRAY)
+
+        # Histogram normalization (light/color variations across images)
+        self.norm = cv2.equalizeHist(self.gray)
+
+        # Slight blur to remove micro-noise without damaging edges
+        self.blur = cv2.GaussianBlur(self.norm, (5, 5), 0)
+
+        # Invert blurred image (simple bitwise invert)
+        self.invert = cv2.bitwise_not(self.blur)
+
+        # Invert normalized (sharper before blur)
+        self.invert_norm = cv2.bitwise_not(self.norm)
+
+        # blur inverted normalized image
+        self.invert_norm_blur = cv2.GaussianBlur(self.invert_norm, (5, 5), 0)
+
+        # Linear invert using LUT (optional, stronger inversion)
+        lut = np.array([255 - i for i in range(256)], dtype=np.uint8)
+        self.linear_invert = cv2.LUT(self.blur, lut)
+
+        # Linear invert normalized image
+        self.norm_linear_invert = cv2.LUT(self.norm, lut)
+
+        # Blur linear inverted normalized image
+        self.norm_linear_invert_blur = cv2.GaussianBlur(
+            self.norm_linear_invert, (5, 5), 0
+        )
+
+        # Adaptive threshold
+        self.thresh = cv2.adaptiveThreshold(
+            self.invert_norm_blur,
+            255,
+            cv2.ADAPTIVE_THRESH_MEAN_C,
+            cv2.THRESH_BINARY_INV,
+            35,
+            5,
+        )
+
+        if self.debug:
+            cv2.imshow("G
+            self.show_small("Gray", self.gray)
+            self.show_small("Normalized", self.norm)
+            self.show_small("Blurred", self.blur)
+            self.show_small("Blurred_Inverted", self.invert)
+            self.show_small("Normalized_Blurred_LinearInverted", self.linear_invert)
+            self.show_small("Normalized_Inverted", self.invert_norm)
+            self.show_small("Normalized_Inverted_Blurred", self.invert_norm_blur)
+            self.show_small("Normalized_LinearInverted", self.norm_linear_invert)
+            self.show_small(
+                "Normalized_LinearInverted_Blurred", self.norm_linear_invert_blur
+            )
+            self.show_small("Adaptive Threshold", self.thresh)
+
+
+===========================================================================
+===========================================================================
+Given above is the script we used to preprocess the images.
+Given below are the variants we have.
+
+colour photo --> gray
+colour photo --> gray --> normalized
+colour photo --> gray --> normalized --> blurred
+colour photo --> gray --> normalized --> blurred --> inverted
+colour photo --> gray --> normalized --> blurred --> linear inverted
+colour photo --> gray --> normalized --> inverted
+colour photo --> gray --> normalized --> inverted --> blurred
+colour photo --> gray --> normalized --> linear inverted
+colour photo --> gray --> normalized --> linear inverted --> blurred
+colour photo --> gray --> normalized --> inverted --> blurred --> adaptive threshold
+
+You wanted me to test the snippet out on passport sized pictures of various borders, background, light intensity, etc
+So here are the scenarios that show what type of pictures are tested.
+These scenarios are representations of real life pictures.
+All pictures we target is a picture of a person, not a full bodied picture, but a passport size picture against a solid or complex background
+In all below instances 
+    'image' means the area in the picture, inside all borders, that consists of the subject and the background.
+    'border' means the area in the picture that surrounds the image
+    'line border' means a continuous line (1 to 5 px wide) that goes all around the picture and is positioned between the 'image' (at the outer edge of the image) and the 'border' (at the inner edge of the bleed border)
+    'bleed border' means a continuous area around the image that remains outside the line border if line border exists else acts at the main border of the image, the delineation being marked by the background of the image and the lower part of the subject (from shoulder down)
+    'outer frame' means that a physical copy of the picture was placed on a surface (table, cloth, paper, etc), and a picture of that was taken and shared for processing, so the picture we look at will have an area outside of the bleed border
+
+
+A few points of note:
+ Complex background can be an office setting, trees and foilge, a park, the ocean, inside of a car, etc.
+    In almost all images even though there may be a sharp contrast between image and line border, the transition between the two colors happens across 3 to 5 pixels based on my observation.
+    In pictures that have a line border the image is separated from the border by the sharp contrast between the background and the line border. 
+    The lower part of the image, that is from shoulder downwards, acts as the border edges for these kind of pictures.
+    The line border is 1 to 5 px wide.
+    The line border is usually black in colour.
+In some images, especially if it has an outer frame, the line border can be bent or distorted.
+
+Scenario 1:
+    Does not have a border.
+    Does not have an outer frame.
+    The whole object is the image (subject and background)
+    The background is a solid colour.
+
+Scenario 2: 
+    Does not have a border.
+    Does not have an outer frame.
+    The whole object is the image (subject and background)
+    The background is complex. 
+
+Scenario 3:
+    Has a solid color background.
+    The image has a border that is also the bleed edge. 
+    There is no line border
+    The image is separated from the border by the sharp contrast between the background and the border. 
+    For some images, the background in the image and the border may belong to the same color spectrum/wavelength/color group but will be of different intensity/shades/tones/tints etc.
+    Does not have an outer frame.
+
+Scenario 4:
+    The background is complex. 
+    The image has a border that is also the bleed edge. 
+    There is no line border
+    The image is separated from the border by the sharp contrast between the background and the border. 
+    For some images, the background in the image and the border may belong to the same color spectrum/wavelength/color group but will be of different intensity/shades/tones/tints etc.
+    Does not have an outer frame.
+
+Scenario 5:
+    Has a solid color background.
+    The image has 2 borders, the bleed edge and a line border
+    The image is separated from the border by the sharp contrast between the background and the line border. 
+    Does not have an outer frame.
+
+Scenario 6:
+    The background is complex. 
+    The image has 2 borders, the bleed edge and a line border
+    The image is separated from the border by the sharp contrast between the background and the line border. 
+    Does not have an outer frame.
+
+
+Scenario 7:
+    Has a solid color background.
+    The image has 3 borders, an outer frame, the bleed edge and a line border
+    The image is separated from the border by the sharp contrast between the background and the line border. 
+
+Scenario 8:
+    The background is complex (an office setting, trees and foilge, a park, the ocean, inside of a car, etc)
+    The image has 3 borders, an outer frame, the bleed edge and a line border
+    The image is separated from the border by the sharp contrast between the background and the line border. 
+
+Our aim is to target the innermost border, so that we can isolate the image (the area in the picture, inside all borders, that consists of the subject and the background.)
+We need to identify the innermost border, and capture its four corners to that they can be passed to the warp function and after any tilt or skew is corrected the picture is cropped so that we are left with just the image.
+
+I test out 20 images with the below characteristics
+
+Legends:
+G: Good
+M: Medium
+L: Low
+V: Very Low
+S: Solid
+C: Complex
+
+No.	                    1	  2	  3	  4	  5	  6	  7	  8	  9	  10	11	12	13	14	15	16	17	18	19	20	21	22
+Picture_Quality	        L   G	  M	  L	  M	  M	  M	  G	  G	  M	  G	  G	  M	  G	  M	  M	  M	  M	  M	  M	  G	  V
+Image_Background_Type	  S	  S	  S	  C	  S	  S	  S	  S	  S	  S	  S	  S	  S	  S	  S	  S	  S	  S	  S	  S	  S	  S
+Has_Border	            Yes	No	Yes	No	Yes	Yes	Yes	Yes	No	Yes	Yes	Yes	Yes	No	Yes	Yes	Yes	Yes	Yes	Yes	Yes	Yes
+Has_Border_All_Around	  No	NA	Yes	NA	Yes	Yes	Yes	Yes	NA	Yes	Yes	Yes	No	NA	No	Yes	Yes	Yes	Yes	Yes	Yes	Yes
+Line_Border	            No	NA	Yes	NA	Yes	Yes	Yes	No	NA	No	Yes	No	Yes	NA	No	No	No	Yes	Yes	Yes	Yes	No
+Bleed_Border	          Yes	NA	Yes	NA	Yes	Yes	Yes	Yes	NA	Yes	Yes	Yes	Yes	NA	Yes	Yes	Yes	Yes	Yes	Yes	Yes	Yes
+Outer_Frame	            No	NA	No	NA	No	Yes	No	No	NA	No	Yes	No	No	NA	No	No	No	Yes	Yes	Yes	Yes	No
+Tilted/Skewed	          Yes	No	Yes	No	Yes	Yes	No	No	No	No	Yes	No	No	No	No	Yes	Yes	Yes	Yes	Yes	Yes	Yes
+
+
+I have made observations based on the concept that we need to target the innermost border.
+
+colour photo --> gray --> normalized --> inverted
+colour photo --> gray --> normalized --> inverted --> blurred
+colour photo --> gray --> normalized --> linear inverted
+colour photo --> gray --> normalized --> linear inverted --> blurred
+
+These are the variants that give the best results.
+
+But during the testing process I realized that since we are looking to identify the innermost border in order to isolate the image (the subject and background), why not reverse our approach.
+I mean, we already have a working script that identifies the face of the subject and returns the co-ordinates, using opencv.
+So we use one of the four variants that tracks well, get the face co-ordinates, scan outwards, and use, sobel and hough lines.
+Is this doable, will it provide better resutls.
+Note we are attempting to identify the four corners so that we can pass the corner co-ordinates to the warp fucntion and identify the borders to isolate the imgae.
+
+
+
+
+import sys
+import cv2
+import numpy as np
+
+
+def fail(msg):
+    print(msg, file=sys.stderr)
+    sys.exit(1)
+
+
+# Detection parameters
+s_Factor = 1.2  # smaller -> more sensitive
+m_Neighbours = 6  # larger -> stricter
+
+# Aspect ratio constants (815 x 1063)
+targeted_Height_AR = 1.303  # height to width (1063 / 815)
+targeted_Width_AR = 0.767  # widht to height (815 / 1063)
+
+# Haar-cascade for face detection
+cascade_path = cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
+face_cascade = cv2.CascadeClassifier(cascade_path)
+
+# Verify that the cascade file exists
+if face_cascade.empty():
+    fail(f"Cannot load cascade classifier from: {cascade_path}")
+
+# Ensure image argument is provided
+if len(sys.argv) < 2:
+    fail("No image path provided")
+
+image_path = sys.argv[1]
+
+# Ensure argument provided is an image file
+if not image_path.lower().endswith((".jpg", ".png", ".jpeg")):
+    fail("Not an image")
+
+# Read the image file
+img = cv2.imread(image_path)
+
+# If image is not readable
+if img is None:
+    fail("Invalid image path or unreadable file")
+
+# Capture the image width and height
+ImageH, ImageW, _ = img.shape
+
+# Convert to LAB colour space for better colour difference handling
+image_lab = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
+
+# Set sample background (rows 5-80, first 150 columns)
+sample_region = image_lab[5:80, 0:150]
+mean_bg_color = sample_region.mean(axis=(0, 1))
+
+# Scan from top downward
+threshold = 15  # LAB is more sensitive, hence lower threshold
+top_of_head = 0
+
+# Scan only the central 80% columns to avoid edge noise
+x_start_scan = int(ImageW * 0.1)
+x_end_scan = int(ImageW * 0.9)
+
+for y in range(ImageH):
+    row = image_lab[y, x_start_scan:x_end_scan, :]
+    diff = np.abs(row - mean_bg_color)  # absolute difference per channel
+    if np.any(diff > threshold):
+        top_of_head = y
+        break
+
+# Determine 'y' position
+selectionY = top_of_head - 25
+
+# Adjust 'y' of it overshoots the top of the image
+if selectionY < 1:
+    selectionY = 3
+
+# Face detection
+gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+faces = face_cascade.detectMultiScale(
+    gray, scaleFactor=s_Factor, minNeighbors=m_Neighbours
+)
+
+# If no face has been detected
+if len(faces) == 0:
+    fail("No face found in image")
+
+# Select the face closest to image center
+image_center = (ImageW // 2, ImageH // 2)
+face = min(
+    faces,
+    key=lambda f: (f[0] + f[2] // 2 - image_center[0]) ** 2
+    + (f[1] + f[3] // 2 - image_center[1]) ** 2,
+)
+
+faceX, faceY, faceW, faceH = face
+
+# Selection logic starts here
+oppX = ImageW - (
+    faceX + faceW
+)  # distance from right edge of the face to the right edge of the image
+lessX = min(faceX, oppX)  # smaller of the left and right 'distance to x'\
+
+# Determine selectionX (left co-ordinate for selection)
+if lessX == faceX:
+    selectionX = faceX - 150 if faceX > 150 else 3
+elif lessX == oppX:
+    selectionX = faceX - 150 if oppX > 150 else faceX - (oppX - 3)
+else:
+    selectionX = 3  # fallback (should rarely trigger)
+
+# Initial width and height based on Aspect Ratio
+selectionW = faceW + ((faceX - selectionX) * 2)
+selectionH = selectionW * targeted_Height_AR
+
+# Adjust widht if height overshoots image bottom
+if selectionH + selectionY >= ImageH:
+    selectionH = ImageH - (selectionY + 3)
+
+    # Recalculated width to maintain Aspect Ratio of height is adjusted
+    recalculated_selectionW = selectionH * targeted_Width_AR
+    width_Diff = selectionW - recalculated_selectionW
+    eachSideAdjustable = width_Diff / 2
+    selectionX = selectionX + eachSideAdjustable
+    selectionW = recalculated_selectionW
+
+# Clamp and Round off values
+selectionX = max(0, selectionX)
+selectionY = max(0, selectionY)
+
+if selectionX + selectionW > ImageW:
+    selectionW = ImageW - selectionX
+
+if selectionY + selectionH > ImageH:
+    selectionH = ImageH - selectionY
+
+selectionX = int(round(selectionX))
+selectionY = int(round(selectionY))
+selectionW = int(round(selectionW))
+selectionH = int(round(selectionH))
+
+print(f"{selectionX}, {selectionY}, {selectionW}, {selectionH}")
+
+cv2.destroyAllWindows()
