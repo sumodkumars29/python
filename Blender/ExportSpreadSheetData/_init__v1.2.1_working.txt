@@ -1,0 +1,405 @@
+bl_info = {
+    "name": "Export Spreadsheet Data",
+    "author": "Sumod Kumar",
+    "version": (1, 2, 1),
+    "blender": (5, 2, 0),
+    "location": "Spreadsheet Editor > Sidebar",
+    "description": "Export evaluated Geometry Nodes vertex and edge data",
+    "category": "Development",
+}
+
+import bpy
+import csv
+import os
+
+# ============================================================
+# Scene Properties
+# ============================================================
+
+
+def register_properties():
+
+    bpy.types.Scene.esd_geometry_domain = bpy.props.EnumProperty(
+        name="Geometry",
+        description="Select the geometry component to export",
+        items=[
+            ("VERTEX", "Vertex", "Export vertex data"),
+            ("EDGE", "Edge", "Export edge data"),
+        ],
+        default="VERTEX",
+    )
+
+    bpy.types.Scene.esd_export_index = bpy.props.BoolProperty(
+        name="Index",
+        description="Export the geometry index",
+        default=True,
+    )
+
+    bpy.types.Scene.esd_export_position = bpy.props.BoolProperty(
+        name="Position",
+        description="Export the geometry position",
+        default=True,
+    )
+
+    bpy.types.Scene.esd_export_normal = bpy.props.BoolProperty(
+        name="Normal",
+        description=(
+            "Vertex: read the normal directly from the evaluated mesh. "
+            "Edge: requires an Edge-domain FLOAT_VECTOR named 'edgenor' "
+            "stored using Store Named Attribute."
+        ),
+        default=True,
+    )
+
+
+def unregister_properties():
+
+    del bpy.types.Scene.esd_geometry_domain
+    del bpy.types.Scene.esd_export_index
+    del bpy.types.Scene.esd_export_position
+    del bpy.types.Scene.esd_export_normal
+
+
+# ============================================================
+# Export Operator
+# ============================================================
+
+
+class SPREADSHEET_OT_export_geometry_data(bpy.types.Operator):
+
+    bl_idname = "spreadsheet.export_geometry_data"
+    bl_label = "Export Geometry Data"
+    bl_description = "Export selected evaluated geometry data to CSV"
+    bl_options = {"REGISTER"}
+
+    filepath: bpy.props.StringProperty(
+        name="File Path",
+        subtype="FILE_PATH",
+    )
+
+    filter_glob: bpy.props.StringProperty(
+        default="*.csv",
+        options={"HIDDEN"},
+    )
+
+    def invoke(self, context, event):
+
+        obj = context.active_object
+
+        if obj is None:
+            self.report({"ERROR"}, "No active object")
+            return {"CANCELLED"}
+
+        if context.scene.esd_geometry_domain == "VERTEX":
+            filename = f"{obj.name}_vertex_data.csv"
+        else:
+            filename = f"{obj.name}_edge_data.csv"
+
+        self.filepath = os.path.join(bpy.path.abspath("//"), filename)
+
+        context.window_manager.fileselect_add(self)
+
+        return {"RUNNING_MODAL"}
+
+    def execute(self, context):
+
+        obj = context.active_object
+
+        if obj is None:
+            self.report({"ERROR"}, "No active object")
+            return {"CANCELLED"}
+
+        # --------------------------------------------------------
+        # Read export settings from Scene properties
+        # --------------------------------------------------------
+
+        geometry_domain = context.scene.esd_geometry_domain
+        export_index = context.scene.esd_export_index
+        export_position = context.scene.esd_export_position
+        export_normal = context.scene.esd_export_normal
+
+        # --------------------------------------------------------
+        # Validate selected data
+        # --------------------------------------------------------
+
+        if not (export_index or export_position or export_normal):
+            self.report({"ERROR"}, "Select at least one data field to export")
+            return {"CANCELLED"}
+
+        # --------------------------------------------------------
+        # Get evaluated geometry
+        # --------------------------------------------------------
+
+        depsgraph = context.evaluated_depsgraph_get()
+
+        obj_eval = obj.evaluated_get(depsgraph)
+
+        if obj_eval.type != "MESH":
+            self.report({"ERROR"}, "The active object does not evaluate to a mesh.")
+            return {"CANCELLED"}
+
+        mesh = obj_eval.data
+
+        # --------------------------------------------------------
+        # Validate Edge Normal attribute
+        # --------------------------------------------------------
+
+        edge_normal_attribute = None
+
+        if geometry_domain == "EDGE" and export_normal:
+
+            if "edgenor" not in mesh.attributes:
+
+                self.report(
+                    {"ERROR"},
+                    "Edge Normal attribute 'edgenor' was not found. "
+                    "Store the Edge Normal as an Edge-domain "
+                    "FLOAT_VECTOR using Store Named Attribute "
+                    "before exporting.",
+                )
+
+                return {"CANCELLED"}
+
+            edge_normal_attribute = mesh.attributes["edgenor"]
+
+            if edge_normal_attribute.domain != "EDGE":
+
+                self.report(
+                    {"ERROR"}, "Attribute 'edgenor' is not stored on the Edge domain"
+                )
+
+                return {"CANCELLED"}
+
+            if edge_normal_attribute.data_type != "FLOAT_VECTOR":
+
+                self.report(
+                    {"ERROR"}, "Attribute 'edgenor' is not a FLOAT_VECTOR attribute"
+                )
+
+                return {"CANCELLED"}
+
+        # --------------------------------------------------------
+        # Build CSV header
+        # --------------------------------------------------------
+
+        header = []
+
+        if export_index:
+            header.append("Index")
+
+        if export_position:
+            header.extend(
+                [
+                    "X",
+                    "Y",
+                    "Z",
+                ]
+            )
+
+        if export_normal:
+            header.extend(
+                [
+                    "Normal X",
+                    "Normal Y",
+                    "Normal Z",
+                ]
+            )
+
+        # --------------------------------------------------------
+        # Write CSV
+        # --------------------------------------------------------
+
+        try:
+
+            with open(self.filepath, "w", newline="", encoding="utf-8") as file:
+
+                writer = csv.writer(file)
+
+                writer.writerow(header)
+
+                # ==================================================
+                # Vertex Export
+                # ==================================================
+
+                if geometry_domain == "VERTEX":
+
+                    for vertex in mesh.vertices:
+
+                        row = []
+
+                        if export_index:
+                            row.append(vertex.index)
+
+                        if export_position:
+
+                            co = vertex.co
+
+                            row.extend(
+                                [
+                                    co.x,
+                                    co.y,
+                                    co.z,
+                                ]
+                            )
+
+                        if export_normal:
+
+                            normal = vertex.normal
+
+                            row.extend(
+                                [
+                                    normal.x,
+                                    normal.y,
+                                    normal.z,
+                                ]
+                            )
+
+                        writer.writerow(row)
+
+                    count = len(mesh.vertices)
+
+                    component_name = "vertices"
+
+                # ==================================================
+                # Edge Export
+                # ==================================================
+
+                else:
+
+                    for edge in mesh.edges:
+
+                        row = []
+
+                        if export_index:
+                            row.append(edge.index)
+
+                        if export_position:
+
+                            v1 = mesh.vertices[edge.vertices[0]]
+
+                            v2 = mesh.vertices[edge.vertices[1]]
+
+                            midpoint = (v1.co + v2.co) / 2.0
+
+                            row.extend(
+                                [
+                                    midpoint.x,
+                                    midpoint.y,
+                                    midpoint.z,
+                                ]
+                            )
+
+                        if export_normal:
+
+                            normal = edge_normal_attribute.data[edge.index].vector
+
+                            row.extend(
+                                [
+                                    normal.x,
+                                    normal.y,
+                                    normal.z,
+                                ]
+                            )
+
+                        writer.writerow(row)
+
+                    count = len(mesh.edges)
+
+                    component_name = "edges"
+
+        except Exception as exc:
+
+            self.report({"ERROR"}, f"Could not write file: {exc}")
+
+            return {"CANCELLED"}
+
+        self.report({"INFO"}, f"Exported {count} {component_name}")
+
+        return {"FINISHED"}
+
+
+# ============================================================
+# Spreadsheet Panel
+# ============================================================
+
+
+class SPREADSHEET_PT_export_geometry_data(bpy.types.Panel):
+
+    bl_label = "Export"
+    bl_idname = "SPREADSHEET_PT_export_geometry_data"
+    bl_space_type = "SPREADSHEET"
+    bl_region_type = "UI"
+    bl_category = "Export"
+
+    def draw(self, context):
+
+        layout = self.layout
+        scene = context.scene
+
+        # --------------------------------------------------------
+        # Geometry
+        # --------------------------------------------------------
+
+        layout.label(text="Geometry")
+
+        row = layout.row(align=True)
+
+        row.prop(scene, "esd_geometry_domain", expand=True)
+
+        # --------------------------------------------------------
+        # Data
+        # --------------------------------------------------------
+
+        layout.label(text="Data")
+
+        row = layout.row()
+
+        row.prop(scene, "esd_export_index")
+
+        row = layout.row()
+
+        row.prop(scene, "esd_export_position")
+
+        row = layout.row()
+
+        row.prop(scene, "esd_export_normal")
+
+        # --------------------------------------------------------
+        # Export button
+        # --------------------------------------------------------
+
+        layout.separator()
+
+        row = layout.row()
+
+        row.operator(SPREADSHEET_OT_export_geometry_data.bl_idname, icon="EXPORT")
+
+
+# ============================================================
+# Registration
+# ============================================================
+
+classes = (
+    SPREADSHEET_OT_export_geometry_data,
+    SPREADSHEET_PT_export_geometry_data,
+)
+
+
+def register():
+
+    for cls in classes:
+        bpy.utils.register_class(cls)
+
+    register_properties()
+
+
+def unregister():
+
+    unregister_properties()
+
+    for cls in reversed(classes):
+        bpy.utils.unregister_class(cls)
+
+
+if __name__ == "__main__":
+    register()
