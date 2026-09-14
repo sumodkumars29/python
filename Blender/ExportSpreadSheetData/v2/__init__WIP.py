@@ -13,12 +13,12 @@ bl_info = {
 # MODULE IMPORTS
 # ============================================================================
 
-from . import panel
 from . import refresh
+from . import export
+from . import panel
 from . import requirements
 from . import extraction
 from . import writecsv
-from . import export
 
 from . import mesh
 from . import curves
