@@ -69,3 +69,18 @@ DEFAULT_FEATURES = {
         "POINT": ("INDEX",),
     },
 }
+
+
+# Geometry Domain Information #
+
+GEOMETRY_DOMAIN_INFO = {
+    "VERTEX": {
+        "attribute_domain": "POINT",
+    },
+    "EDGE": {
+        "attribute_domain": "EDGE",
+    },
+    "FACE": {
+        "attribute_domain": "FACE",
+    },
+}

@@ -1,0 +1,55 @@
+import bpy
+
+from .constants import DEFAULT_FEATURES
+
+
+class SPREADSHEET_PT_export_geometry_data(bpy.types.Panel):
+    bl_label = "Export"
+    bl_idname = "export_geometry_data"
+    bl_space_type = "NODE_EDITOR"
+    bl_region_type = "UI"
+    bl_category = "Export"
+
+    def draw(self, context):
+        layout = self.layout
+        scene = context.scene
+
+        evaluated_geo = scene.esd_evaluated_geo
+        # add an conditional to check for ERROR
+       
+
+        # ---------------------------------------------------------
+        # Geometry components
+        # ---------------------------------------------------------
+-->> This is what is supposed to happen here. 
+-->> I will lay it out in words and you do the coding.
+
+the loop ....
+    loops through the first layer of DEFAULT_FEATURES
+    compares with goemetry_type and identifies if == esd_evaluated_geo 
+      draws the geometry type row
+          loops through the second layer of DEFAULT_FEATURES
+          draws the domains as horizontal buttons
+          draws the attribute available (Index)
+          if == esd_evaluated_geo draws the discovered attribute (scene.esd_stored_attributes) and sets state to enabled
+          
+      if TRUE 
+
+
+        # ---------------------------------------------------------
+        # Buttons
+        # ---------------------------------------------------------
+
+        row = layout.row(align=True)
+
+        row.operator(
+            "esd.refresh",
+            icon="FILE_REFRESH",
+        )
+
+        row.operator(
+            "wm.save_mainfile",
+            # what is this supposed to be?
+            text="",
+            icon="EXPORT",
+        )

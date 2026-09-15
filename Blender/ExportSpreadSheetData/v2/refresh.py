@@ -3,6 +3,13 @@ import bpy
 from . import geoinfo
 from . import mesh
 
+COMPONENT_MODULES = {
+    "MESH": mesh,
+    # "CURVE": curves,
+    # "INSTANCES": instances,
+    # "POINTCLOUD": pointcloud,
+}
+
 # ====================================================
 # Refresh Operator
 # ====================================================
@@ -42,7 +49,7 @@ class ESD_OT_refresh(bpy.types.Operator):
         if geometry_type == "MESH":
             context.scene.esd_mesh_available = True
             mesh_data = geometry.mesh
-            attributes = mesh.get_mesh_attributes(mesh_data)
+            attributes = mesh.get_attributes(mesh_data)
             collection = context.scene.esd_stored_attributes
             collection.clear()
             for attribute in attributes:
@@ -66,11 +73,30 @@ class ESD_OT_refresh(bpy.types.Operator):
 
 
 # ====================================================
+# Attribute Property
+# ====================================================
+
+
+class ESD_AttributeItem(bpy.types.PropertyGroup):
+    name: bpy.props.StringProperty()
+    domain: bpy.props.StringProperty()
+    data_type: bpy.props.StringProperty()
+    selected: bpy.props.BoolProperty(
+        name="Export",
+        description="Select this attribute for export",
+        default=False,
+    )
+
+
+# ====================================================
 # Registration
 # ====================================================
 
 
-CLASSES = (ESD_OT_refresh,)
+CLASSES = (
+    ESD_OT_refresh,
+    ESD_AttributeItem,
+)
 
 
 def register():
@@ -78,15 +104,14 @@ def register():
     for cls in CLASSES:
         bpy.utils.register_class(cls)
 
-    bpy.types.Scene.esd_mesh_available = bpy.props.BoolProperty(
-        name="Mesh Available",
-        default=False,
+    bpy.types.Scene.esd_stored_attributes = bpy.props.CollectionProperty(
+        type=ESD_AttributeItem,
     )
 
 
 def unregister():
 
-    del bpy.types.Scene.esd_mesh_available
+    del bpy.types.Scene.esd_stored_attributes
 
     for cls in reversed(CLASSES):
         bpy.utils.unregister_class(cls)

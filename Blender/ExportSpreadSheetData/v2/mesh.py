@@ -1,7 +1,7 @@
 from .constants import EXCLUDED_ATTRIBUTES
 
 
-def get_mesh_attributes(mesh):
+def get_attributes(mesh):
     """Return user-created attributes available on the evaluated mesh."""
     attributes = []
     if mesh is None:
