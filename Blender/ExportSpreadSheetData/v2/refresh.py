@@ -1,14 +1,8 @@
 import bpy
 
 from . import geoinfo
-from . import mesh
 
-COMPONENT_MODULES = {
-    "MESH": mesh,
-    # "CURVE": curves,
-    # "INSTANCES": instances,
-    # "POINTCLOUD": pointcloud,
-}
+# from . import mesh
 
 # ====================================================
 # Refresh Operator
@@ -42,33 +36,34 @@ class ESD_OT_refresh(bpy.types.Operator):
             )
             return {"CANCELLED"}
 
-        context.scene.esd_mesh_available = False
-        # ------------------------------------------------
-        # Mesh
-        # ------------------------------------------------
-        if geometry_type == "MESH":
-            context.scene.esd_mesh_available = True
-            mesh_data = geometry.mesh
-            attributes = mesh.get_attributes(mesh_data)
-            collection = context.scene.esd_stored_attributes
-            collection.clear()
-            for attribute in attributes:
-                item = collection.add()
-                item.name = attribute["name"]
-                item.domain = attribute["domain"]
-                item.data_type = attribute["data_type"]
+        context.scene.esd_geometry_component = geometry_type
+
+        module = geoinfo.get_component_module(geometry_type)
+        data = geoinfo.get_component_data(geometry_type, geometry)
+
+        if module is None or data is None:
             self.report(
-                {"INFO"},
-                f"Found {len(attributes)} mesh attributes.",
+                {"ERROR"},
+                f"No component handler found for {geometry_type}.",
             )
-            return {"FINISHED"}
-        # ------------------------------------------------
-        # Other geometry types
-        # ------------------------------------------------
+            return {"CANCELLED"}
+
+        attributes = module.get_attributes(data)
+
+        collection = context.scene.esd_stored_attributes
+        collection.clear()
+
+        for attribute in attributes:
+            item = collection.add()
+            item.name = attribute["name"]
+            item.domain = attribute["domain"]
+            item.data_type = attribute["data_type"]
+
         self.report(
             {"INFO"},
-            f"Detected geometry type: {geometry_type}",
+            f"Found {len(attributes)} {geometry_type.lower()} attributes.",
         )
+
         return {"FINISHED"}
 
 
@@ -108,9 +103,14 @@ def register():
         type=ESD_AttributeItem,
     )
 
+    bpy.types.Scene.esd_geometry_component = bpy.props.StringProperty(
+        default="",
+    )
+
 
 def unregister():
 
+    del bpy.types.Scene.esd_geometry_component
     del bpy.types.Scene.esd_stored_attributes
 
     for cls in reversed(CLASSES):
