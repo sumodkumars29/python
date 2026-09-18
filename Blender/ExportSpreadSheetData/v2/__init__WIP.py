@@ -14,41 +14,34 @@ bl_info = {
 # ============================================================================
 
 from . import refresh
-from . import export
+
+# from . import export
 from . import panel
-from . import requirements
-from . import extraction
-from . import writecsv
 
+# from . import requirements
+# from . import extraction
+# from . import writecsv
+#
 from . import mesh
-from . import curves
-from . import instances
-from . import pointcloud
 
-# ============================================================================
-# COMPONENT MODULES
-# ============================================================================
-COMPONENT_MODULES = {
-    "MESH": mesh,
-    "CURVES": curves,
-    "INSTANCES": instances,
-    "POINTCLOUD": pointcloud,
-}
+# from . import curves
+# from . import instances
+# from . import pointcloud
 
 # ============================================================================
 # MODULE REGISTRATION
 # ============================================================================
 MODULES = (
     refresh,
-    export,
+    # export,
     panel,
-    requirements,
-    extraction,
-    writecsv,
+    # requirements,
+    # extraction,
+    # writecsv,
     mesh,
-    curves,
-    instances,
-    pointcloud,
+    # curves,
+    # instances,
+    # pointcloud,
 )
 
 
