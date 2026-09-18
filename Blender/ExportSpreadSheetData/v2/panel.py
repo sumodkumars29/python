@@ -17,7 +17,7 @@ class SPREADSHEET_PT_export_geometry_data(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         scene = context.scene
-        evaluated_geo = scene.esd_evaluated_geo
+        evaluated_geo = scene.esd_geometry_component
         # --------------------------------------------------------------------
         # Geometry components
         # --------------------------------------------------------------------
@@ -41,18 +41,28 @@ class SPREADSHEET_PT_export_geometry_data(bpy.types.Panel):
                 column = domain_row.column(align=True)
                 domain_columns[domain] = column
 
-                column.label(text=domain)
+                # column.label(text=domain)
+                button = column.operator(
+                    "esd.select_domain",
+                    text=domain,
+                    depress=(domain == scene.esd_selected_domain),
+                )
+                button.domain = domain
 
                 # Default attributes
-                for attribute in domains[domain]:
-                    row = column.row()
-                    row.label(text=attribute)
+                if domain == scene.esd_selected_domain:
+                    for attribute in domains[domain]:
+                        row = column.row()
+                        row.label(text=attribute)
 
             # Discovered attributes
             if geometry_enabled:
                 for attr in scene.esd_stored_attributes:
 
                     for domain in domains:
+                        if domain != scene.esd_selected_domain:
+                            continue
+
                         domain_info = GEOMETRY_DOMAIN_INFO.get(domain)
 
                         if (
@@ -93,12 +103,10 @@ CLASSES = (SPREADSHEET_PT_export_geometry_data,)
 
 
 def register():
-
     for cls in CLASSES:
         bpy.utils.register_class(cls)
 
 
 def unregister():
-
     for cls in reversed(CLASSES):
         bpy.utils.unregister_class(cls)
