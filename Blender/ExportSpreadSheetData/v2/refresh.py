@@ -1,6 +1,7 @@
 import bpy
 
 from . import geoinfo
+from .constants import DEFAULT_FEATURES
 
 # from . import mesh
 
@@ -37,6 +38,7 @@ class ESD_OT_refresh(bpy.types.Operator):
             return {"CANCELLED"}
 
         context.scene.esd_geometry_component = geometry_type
+        context.scene.esd_selected_domain = next(iter(DEFAULT_FEATURES[geometry_type]))
 
         module = geoinfo.get_component_module(geometry_type)
         data = geoinfo.get_component_data(geometry_type, geometry)
@@ -68,6 +70,20 @@ class ESD_OT_refresh(bpy.types.Operator):
 
 
 # ====================================================
+# Domain Selecion Property
+# ====================================================
+class ESD_OT_select_domain(bpy.types.Operator):
+    bl_idname = "esd.select_domain"
+    bl_label = "Select Domain"
+
+    domain: bpy.props.StringProperty()
+
+    def execute(self, context):
+        context.scene.esd_selected_domain = self.domain
+        return {"FINISHED"}
+
+
+# ====================================================
 # Attribute Property
 # ====================================================
 
@@ -90,6 +106,7 @@ class ESD_AttributeItem(bpy.types.PropertyGroup):
 
 CLASSES = (
     ESD_OT_refresh,
+    ESD_OT_select_domain,
     ESD_AttributeItem,
 )
 
@@ -107,9 +124,14 @@ def register():
         default="",
     )
 
+    bpy.types.Scene.esd_selected_domain = bpy.props.StringProperty(
+        default="",
+    )
+
 
 def unregister():
 
+    del bpy.types.Scene.esd_selected_domain
     del bpy.types.Scene.esd_geometry_component
     del bpy.types.Scene.esd_stored_attributes
 
