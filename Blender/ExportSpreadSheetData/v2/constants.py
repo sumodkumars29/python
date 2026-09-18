@@ -54,24 +54,36 @@ EXCLUDED_ATTRIBUTES = {
 
 DEFAULT_FEATURES = {
     "MESH": {
-        "VERTEX": ("INDEX",),
-        "EDGE": ("INDEX",),
-        "FACE": ("INDEX",),
+        "VERTEX": ("Index",),
+        "EDGE": ("Index",),
+        "FACE": ("Index",),
     },
     "CURVE": {
-        "CONTROL POINT": ("INDEX",),
-        "SPLINE": ("INDEX",),
+        "CONTROL POINT": ("Index",),
+        "SPLINE": ("Index",),
     },
     "INSTANCES": {
-        "INSTANCE": ("INDEX",),
+        "INSTANCE": ("Index",),
     },
     "POINTCLOUD": {
-        "POINT": ("INDEX",),
+        "POINT": ("Index",),
     },
 }
 
 
 # Geometry Domain Information #
+
+# GEOMETRY_DOMAIN_INFO = {
+#     "VERTEX": {
+#         "attribute_domain": "POINT",
+#     },
+#     "EDGE": {
+#         "attribute_domain": "EDGE",
+#     },
+#     "FACE": {
+#         "attribute_domain": "FACE",
+#     },
+# }
 
 GEOMETRY_DOMAIN_INFO = {
     "VERTEX": {
@@ -82,5 +94,17 @@ GEOMETRY_DOMAIN_INFO = {
     },
     "FACE": {
         "attribute_domain": "FACE",
+    },
+    "CONTROL POINT": {
+        "attribute_domain": "POINT",
+    },
+    "SPLINE": {
+        "attribute_domain": "CURVE",
+    },
+    "INSTANCE": {
+        "attribute_domain": "INSTANCE",
+    },
+    "POINT": {
+        "attribute_domain": "POINT",
     },
 }
