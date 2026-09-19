@@ -1,5 +1,5 @@
 import bpy
-from .constants import DEFAULT_FEATURES, GEOMETRY_DOMAIN_INFO
+from .constants import DEFAULT_FEATURES, GEOMETRY_DOMAIN_INFO, ATTRIBUTE_TYPE_NAMES
 
 # ============================================================================
 # PANEL
@@ -35,11 +35,11 @@ class SPREADSHEET_PT_export_geometry_data(bpy.types.Panel):
             # Horizontal domain row
             domain_row = section.row(align=True)
 
-            domain_columns = {}
+            # domain_columns = {}
 
             for domain in domains:
                 column = domain_row.column(align=True)
-                domain_columns[domain] = column
+                # domain_columns[domain] = column
 
                 # column.label(text=domain)
                 button = column.operator(
@@ -49,28 +49,32 @@ class SPREADSHEET_PT_export_geometry_data(bpy.types.Panel):
                 )
                 button.domain = domain
 
-                # Default attributes
-                if domain == scene.esd_selected_domain:
-                    for attribute in domains[domain]:
-                        row = column.row()
-                        row.label(text=attribute)
-
-            # Discovered attributes
             if geometry_enabled:
+                attribute_column = section.column()
+
+                # # Default Attributes
+                # for attribute in domains[scene.esd_selected_domain]:
+                #     row = attribute_column.row()
+                #     row.label(text="☐")
+                #     row.label(text=attribute)
+                #     row.label(text="Integer")
+
+                # Stored Attributes
                 for attr in scene.esd_stored_attributes:
+                    domain_info = GEOMETRY_DOMAIN_INFO.get(scene.esd_selected_domain)
 
-                    for domain in domains:
-                        if domain != scene.esd_selected_domain:
-                            continue
-
-                        domain_info = GEOMETRY_DOMAIN_INFO.get(domain)
-
-                        if (
-                            domain_info is not None
-                            and attr.domain == domain_info["attribute_domain"]
-                        ):
-                            row = domain_columns[domain].row()
-                            row.label(text=attr.name)
+                    if (
+                        domain_info is not None
+                        and attr.domain == domain_info["attribute_domain"]
+                    ):
+                        row = attribute_column.row()
+                        row.prop(attr, "selected", text="")
+                        row.label(text=attr.name)
+                        row.label(
+                            text=ATTRIBUTE_TYPE_NAMES.get(
+                                attr.data_type, attr.data_type
+                            )
+                        )
 
         # --------------------------------------------------------------------
         # Refresh
