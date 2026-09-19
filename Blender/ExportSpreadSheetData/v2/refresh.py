@@ -99,6 +99,19 @@ class ESD_AttributeItem(bpy.types.PropertyGroup):
     )
 
 
+# class ESD_DefaultFeatureItem(bpy.types.PropertyGroup):
+#     name: bpy.props.StringProperty()
+#     domain: bpy.props.StringProperty()
+#     data_type: bpy.props.StringProperty(
+#         default="INT",
+#     )
+#     selected: bpy.props.BoolProperty(
+#         name="Export",
+#         description="Select this feature for export",
+#         default=False,
+#     )
+
+
 # ====================================================
 # Registration
 # ====================================================
@@ -108,6 +121,7 @@ CLASSES = (
     ESD_OT_refresh,
     ESD_OT_select_domain,
     ESD_AttributeItem,
+    # ESD_DefaultFeatureItem,
 )
 
 
@@ -119,6 +133,10 @@ def register():
     bpy.types.Scene.esd_stored_attributes = bpy.props.CollectionProperty(
         type=ESD_AttributeItem,
     )
+
+    # bpy.types.Scene.esd_default_features = bpy.props.CollectionProperty(
+    #     type=ESD_DefaultFeatureItem,
+    # )
 
     bpy.types.Scene.esd_geometry_component = bpy.props.StringProperty(
         default="",
@@ -133,6 +151,7 @@ def unregister():
 
     del bpy.types.Scene.esd_selected_domain
     del bpy.types.Scene.esd_geometry_component
+    # del bpy.types.Scene.esd_default_features
     del bpy.types.Scene.esd_stored_attributes
 
     for cls in reversed(CLASSES):
