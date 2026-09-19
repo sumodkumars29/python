@@ -5,9 +5,9 @@ ATTRIBUTE_TYPE_NAMES = {
     "FLOAT": "Float",
     "INT": "Integer",
     "BOOLEAN": "Boolean",
-    "FLOAT_VECTOR": "Vector",
+    "FLOAT_VECTOR": "FloatVector",
     "FLOAT_COLOR": "Color",
-    "BYTE_COLOR": "Byte Color",
+    "BYTE_COLOR": "ByteColor",
     "QUATERNION": "Quaternion",
     "FLOAT4X4": "Float4x4",
 }
