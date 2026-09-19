@@ -23,8 +23,8 @@ from . import panel
 # from . import writecsv
 #
 from . import mesh
+from . import curve
 
-# from . import curves
 # from . import instances
 # from . import pointcloud
 
@@ -39,7 +39,7 @@ MODULES = (
     # extraction,
     # writecsv,
     mesh,
-    # curves,
+    curve,
     # instances,
     # pointcloud,
 )
