@@ -18,10 +18,11 @@
 
 import bpy
 from . import mesh
+from . import curve
 
 COMPONENT_MODULES = {
     "MESH": mesh,
-    # "CURVE": curves,
+    "CURVE": curve,
     # "INSTANCES": instances,
     # "POINTCLOUD": pointcloud,
 }
