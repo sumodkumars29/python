@@ -1,13 +1,96 @@
-mkdir C:\python
-mkdir C:\python\pyver
+Recommended Structure
+C:\
+	└─ python
+	├─ py_3-12-10
+	├─ py_3-14-8
+	├─ py_3-15-0
+	└─ venvs
+			├─ gimp
+			├─ opencv
+			├─ mediapipe
+			└─ blender
+
+
+================================================================
+
+Process:
+
+mkdir C:\python (exists)
+mkdir C:\python\pyver (not mandatory, does not exist)
 mkdir C:\python\pyver\py_314
 
-download and install python to C:\python\pyver\py_314
+Install Python 3.15
+Download the installer.
 
-create virtual environment for the GIMP project
+mkdir C:\python\3-15-0
 
-mkdir C:\python\py_GIMP
-cd C:\python\py_GIMP
-C:\python\pyver\py_314\python -m venv py_venv_gimp
+Use Custom Install
+Installation Directory -> Set -> C:\python\py_3-15-0
+Don't Add to PATH
 
-py_venv_gimp\Scripts\activate
+
+================================================================
+
+C:\python>
+
+11/04/2025  06:42 PM    <DIR>          .
+10/06/2026  01:52 PM    <DIR>          py_3-12-07
+11/05/2025  08:42 AM    <DIR>          py_3-14
+
+
+
+================================================================
+Create Version-Specific Virtual Environments
+Using Python 3.12 -> py -3.12 -m venv C:\python\venvs\gimp
+Using Python 3.14 -> py -3.14 -m venv C:\python\venvs\imageman
+Using Python 3.15 -> py -3.15 -m venv C:\python\venvs\calculator
+
+create virtual environment for project
+
+	mkdir C:\python\py_GIMP
+	cd C:\python\py_GIMP
+	C:\python\pyver\py_314\python -m venv py_venv_gimp	* using the default python version
+
+Using Python 3.12
+	py -3.12 -m venv C:\python\venvs\gimp
+	python -3.12 -m venv C:\python\venvs\gimp
+
+Using Python 3.14
+	py -3.14 -m venv C:\python\venvs\gimp
+	python -3.14 -m venv C:\python\venvs\gimp
+
+
+Using Python 3.15
+	py -3.15 -m venv C:\python\venvs\gimp
+	python -3.15 -m venv C:\python\venvs\gimp
+
+================================================================
+
+Verify a venv's (virtual environment) Base Version
+
+	py_venv_gimp\Scripts\activate  (activate that virtual environment)
+	python --version or py -v
+	(py_venv_gimp) C:\Users\S10DIGITAL>deactivate
+
+without activating the venv:
+	py_GIMP\py_venv_gimp\Scripts\python.exe --version
+	type py_GIMP\py_venv_gimp\pyvenv.cfg
+
+================================================================
+
+Lists all Python installations and their paths
+	py -0p 
+
+example:
+-V:3.13 * C:\Users\User\AppData\Local\Programs\Python\Python313\python.exe (default)
+-V:3.12 C:\Users\User\AppData\Local\Programs\Python\Python312\python.exe
+-V:3.11 C:\Python311\python.exe
+
+================================================================
+
+Find All Python Executables on PATH
+	where python
+
+example:
+C:\Users\User\AppData\Local\Programs\Python\Python313\python.exe
+C:\Python311\python.exe
