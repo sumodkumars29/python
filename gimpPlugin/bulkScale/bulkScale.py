@@ -2,13 +2,14 @@
 # -*- coding: utf-8 -*-
 
 import gi
-gi.require_version('Gimp', '3.0')
+
+gi.require_version("Gimp", "3.0")
 from gi.repository import Gimp
-gi.require_version('GimpUi', '3.0')
+
+gi.require_version("GimpUi", "3.0")
 from gi.repository import GimpUi
-gi.require_version('Gegl', '0.4')
-from gi.repository import Gegl
-from gi.repository import GObject
+
+gi.require_version("Gegl", "0.4")
 from gi.repository import GLib
 from gi.repository import Gio
 
@@ -16,33 +17,34 @@ import os
 import sys
 
 
-
-class scaleImage (Gimp.PlugIn):
+class scaleImage(Gimp.PlugIn):
     ## GimpPlugIn virtual methods ##
     def do_query_procedures(self):
-        return [ "sk-plug-in-bulk-scale-image-python" ]
+        return ["sk-plug-in-bulk-scale-image-python"]
 
     def do_create_procedure(self, name):
-        procedure = Gimp.ImageProcedure.new(self, name,
-                                            Gimp.PDBProcType.PLUGIN,
-                                            self.run, None)
+        procedure = Gimp.ImageProcedure.new(
+            self, name, Gimp.PDBProcType.PLUGIN, self.run, None
+        )
 
         procedure.set_image_types("*")
-        procedure.set_sensitivity_mask (Gimp.ProcedureSensitivityMask.DRAWABLE)
+        procedure.set_sensitivity_mask(Gimp.ProcedureSensitivityMask.DRAWABLE)
 
         procedure.set_menu_label("Bulk Scale- height: 1100, AspectRatio : Locked")
         procedure.set_icon_name(GimpUi.ICON_GEGL)
-        procedure.add_menu_path('<Image>/Image/')
+        procedure.add_menu_path("<Image>/Image/")
 
-        procedure.set_documentation("Scale all images to 1100 px height",
-                                    "This will scale all images to height of 1063 px and maintain the aspect ration",
-                                    name)
+        procedure.set_documentation(
+            "Scale all images to 1100 px height",
+            "This will scale all images to height of 1063 px and maintain the aspect ration",
+            name,
+        )
         procedure.set_attribution("Sumod", "Sumod", "2025")
 
         return procedure
 
     def run(self, procedure, run_mode, image, drawables, config, run_data):
-            
+
         counter = 1  # start counting from 1
 
         for img in Gimp.get_images():
@@ -51,13 +53,13 @@ class scaleImage (Gimp.PlugIn):
 
             # The required height target
             t_height = 1100
-	
-            # get current dimensions            
+
+            # get current dimensions
             img_w, img_h = img.get_width(), img.get_height()
 
             # Calculating the scale factor
             scale_factor = t_height / img_h
-            
+
             # Calculating the width target
             t_width = int(img_w * scale_factor)
 
@@ -67,22 +69,20 @@ class scaleImage (Gimp.PlugIn):
             # Scaling the image to height 1100 px with aspect ration locked
             img.scale(t_width, t_height)
 
-
-
             # Export the image
             output_folder = r"C:\Users\S10DIGITAL\Downloads\Pictures_out"
             os.makedirs(output_folder, exist_ok=True)
             output_path = os.path.join(output_folder, f"Pic{counter}.jpg")
             file = Gio.File.new_for_path(output_path)
             Gimp.file_save(Gimp.RunMode.NONINTERACTIVE, img, file, None)
-            
+
             counter += 1  # increment for the next image
 
             # Update display and finish
             Gimp.displays_flush()
             img.undo_group_end()
 
-        return procedure.new_return_values(Gimp.PDBStatusType.SUCCESS, GLib.Error())    
+        return procedure.new_return_values(Gimp.PDBStatusType.SUCCESS, GLib.Error())
+
 
 Gimp.main(scaleImage.__gtype__, sys.argv)
-

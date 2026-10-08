@@ -1,0 +1,93 @@
+GIMP Python-Fu Plugin — Canonical Process Specification
+Objective
+Create a GIMP Python plugin that processes an image after the user manually defines a four-corner selection.
+The plugin must automate all processing after the manual selection has been created.
+
+Manual Steps — NOT Automated
+Step 1 — Open Image
+The user opens the image in GIMP.
+
+Step 2 — Create Four-Corner Selection
+The user uses GIMP's Free Select Tool to create a selection consisting of four corners around the required subject/content.
+The four selected points define the quadrilateral that is to be retained and subsequently perspective-corrected.
+After the selection is complete, the user initiates the plugin.
+
+Automated Steps
+Step 3 — Invert Selection
+Invert the current selection.
+
+Step 4 — Delete Selection
+Delete the inverted selection.
+Result:
+Only the originally selected four-corner area remains.
+
+Step 5 — Crop Image to Content
+Crop the image to the remaining content.
+
+Step 6 — Perspective Transform
+Automatically perspective-transform the remaining quadrilateral so that its four corners align with the four corresponding corners of the canvas.
+Correspondence:
+Original top-left → Canvas top-left
+Original top-right → Canvas top-right
+Original bottom-left → Canvas bottom-left
+Original bottom-right → Canvas bottom-right
+
+The transformation must be performed programmatically using GIMP's perspective transformation API.
+GIMP 3 provides Gimp.Item.transform_perspective() for this purpose. The API accepts destination coordinates for all four corners and supports non-affine/perspective transformations.
+
+Reference:
+GIMP 3 API — Gimp.Item.transform_perspective
+
+Step 7 — Fit Canvas to Layers
+Fit the canvas to the transformed layer/content.
+
+Step 8 — Crop Image to Content
+Crop the image to content again to remove any remaining empty/transparent borders resulting from the perspective transformation.
+
+Step 9 — Scale Image Height
+Scale the image to one of THREE predefined target heights.
+
+The user must be able to select one of the three fixed measurements.
+The aspect ratio must remain locked.
+
+Therefore:
+Height = selected target measurement
+Width = automatically calculated from the original aspect ratio
+
+Step 10 — Export Image
+Export the processed image to a predefined output folder.
+The filename must be generated according to the selected target measurement.
+The exact three measurements, output folder, file format, and filename convention will be defined separately during implementation.
+
+Processing Order
+The automated processing order is fixed:
+Invert Selection
+Delete Selection
+Crop Image to Content
+Perspective Transform
+Fit Canvas to Layers
+Crop Image to Content
+Scale Height to Selected Fixed Measurement
+Export
+
+The user performs only:
+Open image
+Create four-corner Free Select selection
+
+Perspective Transformation Requirement
+The plugin must NOT depend on GUI mouse automation.
+It should use GIMP's programmatic perspective transformation API.
+The four corners of the retained quadrilateral must be mapped to the corresponding four corners of the canvas.
+
+Source/destination relationship:
+Source TL → Canvas TL
+Source TR → Canvas TR
+Source BL → Canvas BL
+Source BR → Canvas BR
+
+GIMP 3's Gimp.Item.transform_perspective() API supports this operation.
+
+Implementation Constraint
+Do not begin writing plugin code until the process, measurements, naming convention, export location, and any required user-interface details have been explicitly defined.
+
+The process above is the canonical workflow and should be treated as the baseline specification for future development discussions.

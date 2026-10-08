@@ -1,0 +1,217 @@
+GIMP 3.0.4 Python Console
+Python 3.12.10 (main, Apr 18 2025, 06:12:22)  [GCC UCRT Clang 20.1.3 64 bit (AMD64)]
+
+>>> image = Gimp.get\_images()\[0]; drawables = image.get\_selected\_drawables()
+
+>>> print(image.get\_width(), image.get\_height())
+INVERING SELECTION
+
+>>> invertProcedure = Gimp.get\_pdb().lookup\_procedure("gimp-selection-invert"); invertConfig = invertProcedure.create\_config(); invertConfig.set\_property("image", image); invertProcedure.run(invertConfig)
+
+DELETE SELECTION
+
+>>> delProcedure = Gimp.get\_pdb().lookup\_procedure("gimp-drawable-edit-clear"); delConfig = delProcedure.create\_config(); delConfig.set\_property("drawable", drawables\[0]); delProcedure.run(delConfig)
+
+CROP LAYERS AND CANVAS
+
+>>> image.autocrop\_selected\_layers(drawables\[0]); image.autocrop(drawables\[0])
+
+INVERING SELECTION
+
+>>> invertProcedure = Gimp.get\_pdb().lookup\_procedure("gimp-selection-invert"); invertConfig = invertProcedure.create\_config(); invertConfig.set\_property("image", image); invertProcedure.run(invertConfig)
+
+SELECTION TO PATH
+
+>>> proc = Gimp.get\_pdb().lookup\_procedure("plug-in-sel2path"); config = proc.create\_config(); config.set\_property("image", image); config.set\_core\_object\_array("drawables", image.get\_selected\_drawables()); proc.run(config)
+
+CAPTURE CONTROL POINT COORDINATES OF PATH
+
+>>> path = image.get\_paths()\[0]; strokes = path.get\_strokes(); points = path.stroke\_get\_points(strokes\[0]); cp = points.controlpoints; anchors = \[(cp\[i], cp\[i+1]) for i in range(0, len(cp), 6)]
+
+>>> import math
+>>> print(image.get\_width(), image.get\_height())
+377 245
+>>> corner\_candidates = \[]; n = len(anchors)
+
+for i in range(n):
+     prev = anchors[(i - 1) % n]
+     curr = anchors[i]
+     nxt  = anchors[(i + 1) % n]
+     v1 = (prev[0] - curr[0], prev[1] - curr[1])
+     v2 = (nxt[0] - curr[0], nxt[1] - curr[1])
+     len1 = math.hypot(*v1)
+     len2 = math.hypot(*v2)
+     if len1 == 0 or len2 == 0:
+         continue
+     dot = v1[0]*v2[0] + v1[1]*v2[1]
+     angle = math.degrees(math.acos(
+         max(-1, min(1, dot / (len1 * len2)))
+     ))
+     change = 180 - angle
+     corner_candidates.append((change, i, curr))
+ 
+>>> corner\_candidates.sort(reverse=True); print(corner\_candidates\[:4])
+
+
+[
+(94.38308968913589, 32, (0.0, 243.9981469984375)),
+(91.27323751989046, 5, (361.0, 0.0)),
+(90.65747757121639, 10, (376.0, 225.0)),
+(81.05886141559169, 0, (11.0, 26.0))]
+>>> 
+
+
+[
+(89.70341233729579, 86, (545.0, 27.0)), TR
+(89.15834098434435, 0, (1.0, 1246.0)), BL
+(85.70585608093067, 56, (59.18010867786252, 3.0607697220734735)), TL
+(78.68376133226884, 117, (518.40167687625, 1257.9870442771876)) BR
+]
+
+****************************************************************
+corners = [c[2] for c in corner_candidates[:4]]
+
+TL = min(corners, key=lambda p: p[0] + p[1])
+BR = max(corners, key=lambda p: p[0] + p[1])
+
+remaining = [p for p in corners if p != TL and p != BR]
+
+TR = max(remaining, key=lambda p: p[0])
+BL = min(remaining, key=lambda p: p[0])
+
+src = [TL, TR, BL, BR]
+
+print("src =", src)
+
+
+For Console
+==============================================================
+corners = [c[2] for c in corner_candidates[:4]]; TL = min(corners, key=lambda p: p[0] + p[1]); BR = max(corners, key=lambda p: p[0] + p[1]); remaining = [p for p in corners if p != TL and p != BR]; TR = max(remaining, key=lambda p: p[0]); BL = min(remaining, key=lambda p: p[0]); src = [TL, TR, BL, BR]; print("src =", src)
+==============================================================
+
+w = image.get_width(); h = image.get_height()
+
+dst = [
+    (0.0, 0.0),
+    (float(w), 0.0),
+    (0.0, float(h)),
+    (float(w), float(h))
+]
+
+
+****************************************************************
+
+import math
+Sequence -> TL, TR, BL, BR
+src = [
+    (59.18010867786252, 3.0607697220734735),
+    (545.0, 27.0),
+    (1.0, 1246.0),
+    (518.40167687625, 1257.9870442771876)
+]
+
+dst = [
+    (0.0, 0.0),
+    (545.0, 0.0),
+    (0.0, 1259.0),
+    (545.0, 1259.0)
+]
+
+A = []; b = []
+
+for (x, y), (u, v) in zip(src, dst):
+    A.append([x, y, 1, 0, 0, 0, -u*x, -u*y])
+    b.append(u)
+    A.append([0, 0, 0, x, y, 1, -v*x, -v*y])
+    b.append(v)
+
+n = 8
+
+for i in range(n):
+    pivot = max(range(i, n), key=lambda r: abs(A[r][i]))
+    A[i], A[pivot] = A[pivot], A[i]
+    b[i], b[pivot] = b[pivot], b[i]
+    p = A[i][i]
+    for j in range(i, n):
+        A[i][j] /= p
+    b[i] /= p
+    for r in range(n):
+        if r == i:
+            continue
+        factor = A[r][i]
+        for j in range(i, n):
+            A[r][j] -= factor * A[i][j]
+        b[r] -= factor * b[i]
+
+
+h = b
+
+H = [
+    [h[0], h[1], h[2]],
+    [h[3], h[4], h[5]],
+    [h[6], h[7], 1.0]
+]
+
+print("Homography:")
+for row in H:
+    print(row)
+
+Gimp.Selection.none(image)
+
+================================================
+
+[1.1110202932989885, 0.14778573218579513, -61.25981329291761]
+[-0.03465907218799148, 1.178853514708728, 0.6802413150424594]
+[-3.1200849083973025e-05, 0.00032057940795009393, 1.0]
+
+result = drawables[0].transform_matrix(
+    1.1110202932989885,
+    0.14778573218579513,
+    -61.25981329291761,
+    -0.03465907218799148,
+    1.178853514708728,
+    0.6802413150424594,
+    -3.1200849083973025e-05,
+    0.00032057940795009393,
+    1.0
+)
+
+
+[1.1064584388354364, 0.0517916489003163, -65.63885296862955]
+[-0.05293977990124576, 1.0743535953182173, -0.15536702741292893]
+[-2.3452712479142187e-05, 5.065665247087473e-05, 1.0]
+
+result = drawables[0].transform_matrix(
+    1.1064584388354364,
+    0.0517916489003163,
+    -65.63885296862955,
+    -0.05293977990124576,
+    1.0743535953182173,
+    -0.15536702741292893,
+    -2.3452712479142187e-05,
+    5.065665247087473e-05,
+    1.0
+)
+
+result = drawables[0].transform_matrix(
+    *H[0],
+    *H[1],
+    *H[2]
+)
+
+
+=======================================================
+
+print(result);
+
+print("Canvas:", image.get_width(), image.get_height())
+print("Layer:", drawables[0].get_width(), drawables[0].get_height())
+print("Offset:", drawables[0].get_offsets())
+
+image.resize_to_layers()
+
+print("Canvas:", image.get_width(), image.get_height()); print("Layer:", drawables[0].get_width(), drawables[0].get_height()); print("Offset:", drawables[0].get_offsets())
+
+>>> image.autocrop\_selected\_layers(drawables\[0]); image.autocrop(drawables\[0])
+
+print("Canvas:", image.get_width(), image.get_height()); print("Layer:", drawables[0].get_width(), drawables[0].get_height()); print("Offset:", drawables[0].get_offsets())

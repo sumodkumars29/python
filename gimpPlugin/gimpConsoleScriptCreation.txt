@@ -1,0 +1,298 @@
+
+	
+"C:\Users\S10DIGITAL\AppData\Local\Programs\GIMP 3\bin\gimp-3.0.exe" -i 
+	--batch-interpreter python-fu-eval 
+		-b "import gi; 
+		gi.require_version('Gimp', '3.0'); 
+		from gi.repository import Gimp; 
+		procs = Gimp.get_pdb().query_procedures('', '', '', '', '', '', '', ''); open(r'C:\Users\S10DIGITAL\Downloads\dataFromGimp.txt', 'w').write('\n'.join(procs))" 
+--quit
+
+"C:\Users\S10DIGITAL\AppData\Local\Programs\GIMP 3\bin\gimp-3.0.exe" -i 
+	--batch-interpreter python-fu-eval 
+		-b "import gi; 
+		gi.require_version('Gimp', '3.0'); 
+		from gi.repository import Gimp; 
+		proc = Gimp.get_pdb().lookup_procedure("sk-plug-in-crop-scale-save-python"); proc.run()"
+--quit
+
+
+"C:\Users\S10DIGITAL\AppData\Local\Programs\GIMP 3\bin\gimp-console-3.0.exe" -i --batch-interpreter=python-fu-eval -b "import gi; gi.require_version('Gimp','3.0'); from gi.repository import Gimp; img = Gimp.file_load(Gimp.Context(), 'C:\Users\S10DIGITAL\Downloads\Pictures\Pic1.jpeg', 'C:\Users\S10DIGITAL\Downloads\Pictures\Pic1.jpeg'); proc = Gimp.get_pdb().lookup_procedure('sk-plug-in-crop-scale-save-python'); proc.run(None, img, img.get_active_layer()); Gimp.quit()"
+
+"C:\Users\S10DIGITAL\AppData\Local\Programs\GIMP 3\bin\gimp-console-3.0.exe" -i --batch-interpreter=python-fu-eval 
+	-b "
+		import gi;
+		gi.require_version('Gimp','3.0');
+		gi.require_version('Gio','2.0');
+		from gi.repository import Gimp, Gio;
+		file = Gio.File.new_for_path(r'C:\Users\S10DIGITAL\Downloads\Pictures\Pic1.jpeg');
+		img = Gimp.file_load(Gimp.RunMode.NONINTERACTIVE, file);
+		drawable = iimg.get_selected_layers();
+		proc = Gimp.get_pdb().lookup_procedure('sk-plug-in-crop-scale-save-python'); args = Gimp.ValueArray.new(0); args.append(Gimp.Value(Gimp.Image, img)); args.append(Gimp.Value(Gimp.ObjectArray, [drawable])); args.append(Gimp.Value(Gimp.Config, None)); args.append(Gimp.Value(Gimp.RunData, None)); proc.run(args, None); Gimp.quit()"
+
+
+C:\Users\S10DIGITAL\Downloads\Pictures>"C:\Users\S10DIGITAL\AppData\Local\Programs\GIMP 3\bin\gimp-console-3.0.exe" -i --batch-interpreter=python-fu-eval -b "import gi; gi.require_version('Gimp','3.0'); gi.require_version('Gio','2.0'); from gi.repository import Gimp, Gio; file = Gio.File.new_for_path('C:\Users\S10DIGITAL\Downloads\Pictures\Pic1.jpeg'); img = Gimp.file_load(Gimp.RunMode.NONINTERACTIVE, file); drawable = img.get_selected_layers()[0]; proc = Gimp.get_pdb().lookup_procedure('sk-plug-in-crop-scale-save-python'); proc.run(None); Gimp.quit()"
+
+
+
+
+"C:\Users\S10DIGITAL\Downloads\Pictures\Pic1.jpeg"
+
+"C:\Users\S10DIGITAL\AppData\Local\Programs\GIMP 3\bin\gimp-console-3.0.exe" -i 
+--batch-interpreter=python-fu-eval 
+-b "
+import gi; 
+gi.require_version('Gimp','3.0'); 
+from gi.repository import Gimp, Gio; 
+image = Gimp.FileProcedure.new_for_uri(Gio.File.new_for_path(r'C:\Users\S10DIGITAL\Downloads\test.jpg'), None).run(Gimp.RunMode.NONINTERACTIVE, [], []).index(1); 
+drawable = image.get_active_drawable(); 
+pdb = Gimp.get_pdb(); 
+pdb.run_procedure('sk-plug-in-crop-scale-save-python', [Gimp.RunMode.NONINTERACTIVE, image, [drawable]]);
+" 
+--quit
+
+
+"C:\Users\S10DIGITAL\AppData\Local\Programs\GIMP 3\bin\gimp-console-3.0.exe" -i --batch-interpreter=python-fu-eval -b "import gi; gi.require_version('Gimp','3.0'); from gi.repository import Gimp; pdb = Gimp.get_pdb(); info = pdb.lookup_procedure('sk-plug-in-crop-scale-save-python'); open(r'C:\Users\S10DIGITAL\Downloads\cropScaleSave_params.txt', 'w').write(str(info.get_arguments()))" --quit
+batch command executed successfully
+
+
+"C:\Users\S10DIGITAL\AppData\Local\Programs\GIMP 3\bin\gimp-console-3.0.exe" -i --batch-interpreter=python-fu-eval -b "import gi; gi.require_version('Gimp','3.0'); from gi.repository import Gimp; pdb = Gimp.get_pdb(); info = pdb.lookup_procedure('sk-plug-in-crop-scale-save-python'); open(r'C:\Users\S10DIGITAL\Downloads\cropScaleSave_params.txt', 'w').write(str(info.get_arguments()))" --quit
+batch command executed successfully
+
+
+"C:\Users\S10DIGITAL\AppData\Local\Programs\GIMP 3\bin\gimp-console-3.0.exe" -i --batch-interpreter=python-fu-eval -b "open(r'C:\Users\S10DIGITAL\Downloads\test_output.txt','w').write('GIMP console test OK')" --quit
+
+file = Gio.File.new_for_path(r"C:\Users\S10DIGITAL\Downloads\Pictures\Pic1.jpeg")
+img = Gimp.file_load(run_mode, file)
+
+"C:\Users\S10DIGITAL\AppData\Local\Programs\GIMP 3\bin\gimp-console-3.0.exe" -i --batch-interpreter=python-fu-eval 
+	-b "
+		import gi;
+		gi.require_version('Gimp','3.0');
+		gi.require_version('Gio','2.0');
+		from gi.repository import Gimp, Gio;
+		file = Gio.File.new_for_path(r'C:\Users\S10DIGITAL\Downloads\Pictures\Pic1.jpeg');
+		img = Gimp.file_load(Gimp.RunMode.NONINTERACTIVE, file);
+		drawable = img.get_selected_layers();
+		proc = Gimp.get_pdb()
+
+>>> print(file)	
+<__gi__.GLocalFile object at 0x000001d8101a6e00 (GLocalFile at 0x000001d81240f9f0)>
+		
+>>> print(img)
+<Gimp.Image object at 0x000001d8102a2840 (GimpImage at 0x000001d8124106e0)>
+	
+>>> print(drawable)
+[<Gimp.Layer object at 0x000001d8101d0400 (GimpLayer at 0x000001d812411020)>]
+	
+>>> print(len(drawable))
+1
+	
+>>> mypross = proc.lookup_procedure('sk-plug-in-crop-scale-save-python')
+>>> print(mypross)
+<__gi__.GimpPDBProcedure object at 0x000001d810111b80 (GimpPDBProcedure at 0x000001d8122ad010)>
+
+>>> info = mypross.get_arguments()
+>>> print(info)	
+[<GParamEnum at 0x2027526239552>, <GimpParamImage at 0x2027526240832>, <GimpParamCoreObjectArray at 0x2027526241088>]
+>>> print(len(info))
+3
+
+>>> print("Procedure name:", mypross.get_name())
+Procedure name: sk-plug-in-crop-scale-save-python
+>>> print("Procedure blurb:", mypross.get_blurb())
+Procedure blurb: Crop, Scale and Save Passport Size Image
+>>> print("Procedure help:", mypross.get_help())
+Procedure help: Crop the image to dimensions received, Scale to 815x1063 px, Save to designated directory
+>>> print("Procedure author:", mypross.get_authors())
+Procedure author: Sumod
+>>> print("Procedure copyright:", mypross.get_copyright())
+Procedure copyright: Sumod
+>>> print("Procedure date:", mypross.get_date())
+Procedure date: 2025
+	
+config = mypross.create_config()
+print(config)
+<__gi__.GimpProcedureConfig-sk-plug-in-crop-scale-save-python object at 0x000001d810b8be80 (GimpProcedureConfig-sk-plug-in-crop-scale-save-python at 0x000001d80e2908f0)>
+
+>>> config.list_properties()
+[<GParamObject at 0x2027460260384>, <GParamEnum at 0x2027526236352>, <GParamObject at 0x2027463987920>, <GimpParamCoreObjectArray at 0x2027526240320>]
+
+>>> for p in config.list_properties(): print(p.name, p.value_type.name)
+procedure GimpProcedure
+run-mode GimpRunMode
+image GimpImage
+drawables GimpCoreObjectArray
+
+config.set_property("run-mode", Gimp.RunMode.NONINTERACTIVE)
+config.set_property("image", img)
+config.set_property('drawables', Gimp.ObjectArray.new(Gimp.Layer, drawable, False))
+
+Please, remember we are using GIMP 3.0.4 which uses the newer python api so do not waste my time giving we GIMP 2* related code
+
+
+
+>>> print([t for t in dir(Gimp) if "Array" in t])
+['Array', 'DoubleArray', 'Int32Array', 'ParamArray', 'ParamCoreObjectArray', 'ParamDoubleArray', 'ParamInt32Array', 'ParamValueArray', 'ValueArray']
+
+
+
+>>> file = Gio.File.new_for_path(r'C:\Users\S10DIGITAL\Downloads\Pictures\Pic1.jpeg')
+>>> img = Gimp.file_load(Gimp.RunMode.NONINTERACTIVE, file)
+>>> drawable = img.get_selected_layers()
+>>> proc = Gimp.get_pdb()
+>>> mypross = proc.lookup_procedure('sk-plug-in-crop-scale-save-python')
+>>> config = mypross.create_config()
+>>> drawables = img.get_selected_layers()
+>>> config.set_property("run-mode", Gimp.RunMode.NONINTERACTIVE)
+>>> config.set_property("image", img)
+>>> config.set_property("drawables", drawables)
+
+
+
+
+        try:
+            with open(r"D:\Sumod\g_Python\gimp_runArgs.txt", "w") as f:
+                f.write("procedure: " + str(procedure) + "\n")
+                f.write("run_mode: " + str(run_mode) + "\n")
+                f.write("image: " + str(image) + " (" + str(type(image)) + ")\n")
+                if hasattr(image, "__len__"):
+                    f.write("image length: " + str(len(image)) + "\n")
+                else:
+                    f.write("image length: N/A\n")
+                f.write("drawables: " + str(drawables) + " (" + str(type(drawables)) + ")\n")
+                if drawables:
+                    for i, d in enumerate(drawables):
+                        f.write(f"  drawable[{i}]: {d} ({type(d)})\n")
+                f.write("config: " + str(config) + " (" + str(type(config)) + ")\n")
+                f.write("run_data: " + str(run_data) + " (" + str(type(run_data)) + ")\n")
+        except Exception as e:
+            with open(r"D:\Sumod\g_Python\gimp_runArgs_error.txt", "w") as f:
+                f.write(str(e))
+				
+				
+				
+				
+"C:\Users\S10DIGITAL\AppData\Local\Programs\GIMP 3\bin\gimp-console-3.0.exe" -i --batch-interpreter=python-fu-eval -b "import gi; gi.require_version('Gimp','3.0'); from gi.repository import Gimp, Gio; file = Gio.File.new_for_path(r'C:\Users\S10DIGITAL\Downloads\Pictures\Pic1.jpeg'); img = Gimp.file_load(Gimp.RunMode.NONINTERACTIVE, file); proc = Gimp.get_pdb(); mypross = proc.lookup_procedure('sk-plug-in-crop-scale-save-python'); config = mypross.create_config(); config.set_property('run-mode', Gimp.RunMode.NONINTERACTIVE); config.set_property('image', img); mypross.run(config)" --quit
+
+
+"C:\Users\S10DIGITAL\AppData\Local\Programs\GIMP 3\bin\gimp-console-3.0.exe" -i --batch-interpreter=python-fu-eval -b "import gi; gi.require_version('Gimp','3.0'); from gi.repository import Gimp, Gio; file = Gio.File.new_for_path(r'C:\Users\S10DIGITAL\Downloads\Pictures\Pic1.jpeg'); img = Gimp.file_load(Gimp.RunMode.NONINTERACTIVE, file); proc = Gimp.get_pdb(); mypross = proc.lookup_procedure('sk-plug-in-crop-scale-save-python'); config = mypross.create_config(); config.set_property('run-mode', Gimp.RunMode.NONINTERACTIVE); config.set_property('image', img); mypross.run(config); img.delete()" --quit
+
+
+
+log_file = r"D:\Sumod\g_Python\gimp_runArgs.txt"
+
+# If no images are open, load from directory
+    if len(Gimp.get_images()) == 0:
+        img_dir = r"C:\Users\S10DIGITAL\Downloads\Pictures"
+		
+		# Build list of image paths
+        image_paths = [
+            os.path.join(img_dir, f)
+            for f in os.listdir(img_dir)
+            if f.lower().endswith((".jpg", ".jpeg", ".png"))
+        ]
+		
+        # Print to file after creating the list
+        with open(log_file, "a") as f:
+            f.write("\n--- Image paths ---\n")
+            f.write(str(image_paths) + "\n")
+
+        images = []
+        for path in image_paths:
+            file = Gio.File.new_for_path(path)
+            img = Gimp.file_load(Gimp.RunMode.NONINTERACTIVE, file)
+            images.append(img)
+        # Print after loading images
+			with open(log_file, "a") as f:
+				f.write("\n--- Loaded images ---\n")
+				f.write(str(images) + "\n")
+				
+		# Print after all images are loaded		
+		with open(log_file, "a") as f:
+			f.write("\n--- All loaded images ---\n")
+			f.write(str(images) + "\n")
+    else:
+        images = Gimp.get_images()
+		
+        # Print the images retrieved from GUI
+        with open(log_file, "a") as f:
+            f.write("\n--- Images from GIMP.get_images() ---\n")
+            f.write(str(images) + "\n")
+			
+    counter = 1
+    for img in images:
+        img.undo_group_start()
+		
+		
+		
+"C:\Users\S10DIGITAL\AppData\Local\Programs\GIMP 3\bin\gimp-console-3.0.exe" -i 
+--batch-interpreter=python-fu-eval 
+-b "
+	pdb = Gimp.get_pdb(); 
+	info = pdb.lookup_procedure('sk-plug-in-crop-scale-save-python'); 
+	open(r'C:\Users\S10DIGITAL\Downloads\cropScaleSave_params.txt', 'w').write(str(info.get_arguments()))
+" 
+--quit
+
+"C:\Users\S10DIGITAL\AppData\Local\Programs\GIMP 3\bin\gimp-console-3.0.exe" -i --batch-interpreter=python-fu-eval -b "pdb = Gimp.get_pdb(); info = pdb.lookup_procedure('sk-plug-in-crop-scale-save-python'); open(r'C:\Users\S10DIGITAL\Downloads\cropScaleSave_params1.txt', 'w').write(str(info.get_arguments()))" --quit
+
+
+"C:\Users\S10DIGITAL\AppData\Local\Programs\GIMP 3\bin\gimp-console-3.0.exe" -i 
+	--batch-interpreter=python-fu-eval 
+	-b "
+		file = Gio.File.new_for_path(r'C:\Users\S10DIGITAL\Downloads\Pictures\Pic1.jpeg'); 
+		img = Gimp.file_load(Gimp.RunMode.NONINTERACTIVE, file); 
+		proc = Gimp.get_pdb(); 
+		mypross = proc.lookup_procedure('sk-plug-in-css-con-gui-python'); 
+		config = mypross.create_config(); 
+		config.set_property('run-mode', Gimp.RunMode.NONINTERACTIVE); 
+		config.set_property('image', img); 
+		mypross.run(config); 
+		img.delete()
+		" 
+	--quit
+	
+"C:\Users\S10DIGITAL\AppData\Local\Programs\GIMP 3\bin\gimp-console-3.0.exe" -i  --batch-interpreter=python-fu-eval -b "file = Gio.File.new_for_path(r'C:\Users\S10DIGITAL\Downloads\Pictures\Pic1.jpeg'); img = Gimp.file_load(Gimp.RunMode.NONINTERACTIVE, file); proc = Gimp.get_pdb(); mypross = proc.lookup_procedure('sk-plug-in-css-con-gui-python'); config = mypross.create_config(); config.set_property('run-mode', Gimp.RunMode.NONINTERACTIVE); config.set_property('image', img); mypross.run(config); img.delete()" --quit
+
+"C:\Users\S10DIGITAL\AppData\Local\Programs\GIMP 3\bin\gimp-console-3.0.exe" -i 
+	--batch-interpreter=python-fu-eval 
+	-b "
+		import os;
+		image_paths = [os.path.join(img_dir, f) for f in os.listdir(img_dir) if f.lower().endswith((".jpg", ".jpeg", ".png"))]
+		for path in image_paths: file = Gio.File.new_for_path(path); img = Gimp.file_load(Gimp.RunMode.NONINTERACTIVE, file); images.append(img);
+		file = Gio.File.new_for_path(r'C:\Users\S10DIGITAL\Downloads\Pictures\Pic1.jpeg'); 
+		img = Gimp.file_load(Gimp.RunMode.NONINTERACTIVE, file); 
+		proc = Gimp.get_pdb(); 
+		mypross = proc.lookup_procedure('sk-plug-in-css-con-gui-python'); 
+		config = mypross.create_config(); 
+		config.set_property('run-mode', Gimp.RunMode.NONINTERACTIVE); 
+		config.set_property('image', img); 
+		mypross.run(config); 
+		img.delete()
+		" 
+	--quit
+	
+"C:\Users\S10DIGITAL\AppData\Local\Programs\GIMP 3\bin\gimp-console-3.0.exe" -i	--batch-interpreter=python-fu-eval -b "import os; image_paths = [os.path.join(img_dir, f); for f in os.listdir(img_dir): if  f.lower().endswith((".jpg", ".jpeg", ".png")):]; for path in image_paths: file = Gio.File.new_for_path(path); img = Gimp.file_load(Gimp.RunMode.NONINTERACTIVE, file); images.append(img);	file = Gio.File.new_for_path(r'C:\Users\S10DIGITAL\Downloads\Pictures\Pic1.jpeg'); img = Gimp.file_load(Gimp.RunMode.NONINTERACTIVE, file);	proc = Gimp.get_pdb(); mypross = proc.lookup_procedure('sk-plug-in-css-con-gui-python'); 	config = mypross.create_config(); config.set_property('run-mode', Gimp.RunMode.NONINTERACTIVE);	config.set_property('image', img); mypross.run(config);	img.delete()" --quit
+
+
+"C:\Users\S10DIGITAL\AppData\Local\Programs\GIMP 3\bin\gimp-console-3.0.exe" -i --batch-interpreter=python-fu-eval -b "files = [r'C:\Users\S10DIGITAL\Downloads\Pictures\Pic1.jpeg', r'C:\Users\S10DIGITAL\Downloads\Pictures\Pic2.jpeg']; images = [Gimp.file_load(Gimp.RunMode.NONINTERACTIVE, Gio.File.new_for_path(f)) for f in files]; proc = Gimp.get_pdb(); mypross = proc.lookup_procedure('sk-plug-in-css-con-gui-python'); config = mypross.create_config(); config.set_property('run-mode', Gimp.RunMode.NONINTERACTIVE); mypross.run(config); img.delete()" --quit
+
+
+
+
+if len(Gimp.get_images()) == 0:
+	msg = "No images open — exiting plugin.\n"
+	# Log to file
+	with open(log_file, "a") as f:
+		f.write("\n--- Plugin Exit ---\n")
+		f.write(msg)
+	# Display message in GIMP or console
+	Gimp.message(msg)
+	# Clean exit
+	return procedure.new_return_values(Gimp.PDBStatusType.CANCEL, GLib.Error())
+else:
+	
+start "" /B /MIN "C:\Users\S10DIGITAL\AppData\Local\Programs\GIMP 3\bin\gimp-console-3.0.exe" -i  --batch-interpreter=python-fu-eval -b "file = Gio.File.new_for_path(r'C:\Users\S10DIGITAL\Downloads\Pictures\Pic1.jpeg'); img = Gimp.file_load(Gimp.RunMode.NONINTERACTIVE, file); proc = Gimp.get_pdb(); mypross = proc.lookup_procedure('sk-plug-in-css-con-gui-python'); config = mypross.create_config(); config.set_property('run-mode', Gimp.RunMode.NONINTERACTIVE); config.set_property('image', img); mypross.run(config)" --quit >nul 2>&1
+
+"C:\Users\S10DIGITAL\AppData\Local\Programs\GIMP 3\bin\gimp-console-3.0.exe" -i  --batch-interpreter=python-fu-eval -b "file = Gio.File.new_for_path(r'C:\Users\S10DIGITAL\Downloads\Pictures\Pic1.jpeg'); img = Gimp.file_load(Gimp.RunMode.NONINTERACTIVE, file); proc = Gimp.get_pdb(); mypross = proc.lookup_procedure('sk-plug-in-css-con-gui-python'); config = mypross.create_config(); config.set_property('run-mode', Gimp.RunMode.NONINTERACTIVE); config.set_property('image', img); mypross.run(config)" --quit
