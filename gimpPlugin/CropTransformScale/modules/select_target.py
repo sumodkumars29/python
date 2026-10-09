@@ -36,3 +36,16 @@ def select_target():
         selected = combo.get_active_id()
     dialog.destroy()
     return selected
+
+
+def confirm_export():
+    dialog = GimpUi.Dialog(title="Confirm Export")
+    content = dialog.get_content_area()
+    label = Gtk.Label(label="Do you want to export the processed image?")
+    content.add(label)
+    dialog.add_button("No", Gtk.ResponseType.NO)
+    dialog.add_button("Yes", Gtk.ResponseType.YES)
+    dialog.show_all()
+    response = dialog.run()
+    dialog.destroy()
+    return response == Gtk.ResponseType.YES

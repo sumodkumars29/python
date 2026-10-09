@@ -32,7 +32,12 @@ def export_image(image, target_name):
     output_path = os.path.join(output_folder, filename)
     # Create GIO file object
     file = Gio.File.new_for_path(output_path)
-    # Export the image
-    Gimp.file_save(Gimp.RunMode.NONINTERACTIVE, image, file, None)
+    try:
+        # Export the image
+        success = Gimp.file_save(Gimp.RunMode.NONINTERACTIVE, image, file, None)
+    except Exception as exc:
+        raise RuntimeError(f"Export failed: {output_path}\n{exc}") from exc
+    if not success:
+        raise RuntimeError(f"GIMP failed to save the image: {output_path}")
     # Return path to the caller
     return output_path

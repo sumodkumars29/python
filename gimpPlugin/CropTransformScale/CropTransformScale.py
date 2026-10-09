@@ -19,7 +19,8 @@ from gi.repository import GLib
 import sys
 import math
 
-from modules.select_target import select_target
+from modules.select_target import select_target, confirm_export
+from modules.export import export_image
 
 
 class CropTransformScaleExport(Gimp.PlugIn):
@@ -72,7 +73,7 @@ class CropTransformScaleExport(Gimp.PlugIn):
     def run(self, procedure, run_mode, image, drawables, config, run_data):
         selected_format = select_target()
         if selected_format is None:
-            return procedure.new_return_values(Gimp.PDBStatusType.SUCCESS, Glib.error())
+            return procedure.new_return_values(Gimp.PDBStatusType.CANCEL, GLib.Error())
         Gimp.message(f"selected format: {selected_format}")
 
         format_dimensions = {
@@ -251,11 +252,37 @@ class CropTransformScaleExport(Gimp.PlugIn):
         new_width = round(current_width * target_height / current_height)
         image.scale(new_width, target_height)
 
+        Gimp.displays_flush()
+        # ----------------------------------------------------
+        # EXPORT
+        # ----------------------------------------------------
+        if confirm_export():
+            try:
+                output_path = export_image(image, selected_format)
+            except RuntimeError as exc:
+                Gimp.message(str(exc))
+                return procedure.new_return_values(
+                    Gimp.PDBStatusType.EXECUTION_ERROR, GLib.Error()
+                )
+            Gimp.message(f"Exported to : {output_path}")
+        else:
+            return procedure.new_return_values(Gimp.PDBStatusType.CANCEL, GLib.Error())
+
         return procedure.new_return_values(Gimp.PDBStatusType.SUCCESS, GLib.Error())
 
     def export(self, procedure, run_mode, image, drawables, config, run_data):
-        # Placeholder
-        pass
+        selected_format = select_target()
+        if selected_format is None:
+            return procedure.new_return_values(Gimp.PDBStatusType.CANCEL, GLib.Error())
+        try:
+            output_path = export_image(image, selected_format)
+        except RuntimeError as exc:
+            Gimp.message(str(exc))
+            return procedure.new_return_values(
+                Gimp.PDBStatusType.EXECUTION_ERROR, GLib.Error()
+            )
+        Gimp.message(f"Exported to: {output_path}")
+        return procedure.new_return_values(Gimp.PDBStatusType.SUCCESS, GLib.Error())
 
 
 Gimp.main(CropTransformScaleExport.__gtype__, sys.argv)
