@@ -9,6 +9,8 @@ from gi.repository import GimpUi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
 
+GimpUi.init("CropTransformScale")
+
 
 def select_target():
     formats = [
