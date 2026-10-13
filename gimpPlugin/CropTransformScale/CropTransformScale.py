@@ -19,7 +19,7 @@ from gi.repository import GLib
 import sys
 import math
 
-from modules.select_target import select_target, confirm_export
+from modules.select_target import select_target, confirm_export, build_export_name
 from modules.export import export_image
 
 
@@ -71,10 +71,16 @@ class CropTransformScaleExport(Gimp.PlugIn):
         return None
 
     def run(self, procedure, run_mode, image, drawables, config, run_data):
-        selected_format = select_target()
-        if selected_format is None:
+        selection = select_target()
+        if selection is None:
             return procedure.new_return_values(Gimp.PDBStatusType.CANCEL, GLib.Error())
+        selected_format, image_type, group_number, position = selection
+
+        target_name = build_export_name(
+            selected_format, image_type, group_number, position
+        )
         Gimp.message(f"selected format: {selected_format}")
+        Gimp.message(f"export name prefix: {target_name}")
 
         format_dimensions = {
             "ID_CARD": (86, 54),
@@ -84,6 +90,8 @@ class CropTransformScaleExport(Gimp.PlugIn):
             "A4": (210, 297),
             "LEGAL": (216, 356),
             "A3": (297, 420),
+            "BB_FULL": (210, 180),
+            "BB_HALF": (210, 90),
         }
 
         # target_width_mm, target_height_mm = format_dimensions[selected_format]
@@ -258,7 +266,7 @@ class CropTransformScaleExport(Gimp.PlugIn):
         # ----------------------------------------------------
         if confirm_export():
             try:
-                output_path = export_image(image, selected_format)
+                output_path = export_image(image, target_name)
             except RuntimeError as exc:
                 Gimp.message(str(exc))
                 return procedure.new_return_values(
@@ -271,11 +279,15 @@ class CropTransformScaleExport(Gimp.PlugIn):
         return procedure.new_return_values(Gimp.PDBStatusType.SUCCESS, GLib.Error())
 
     def export(self, procedure, run_mode, image, drawables, config, run_data):
-        selected_format = select_target()
-        if selected_format is None:
+        selection = select_target()
+        if selection is None:
             return procedure.new_return_values(Gimp.PDBStatusType.CANCEL, GLib.Error())
+        selected_format, image_type, group_number, position = selection
+        target_name = build_export_name(
+            selected_format, image_type, group_number, position
+        )
         try:
-            output_path = export_image(image, selected_format)
+            output_path = export_image(image, target_name)
         except RuntimeError as exc:
             Gimp.message(str(exc))
             return procedure.new_return_values(
